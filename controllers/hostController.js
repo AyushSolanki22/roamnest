@@ -1,5 +1,27 @@
 const Home = require("../models/home");
-const { deleteFile } = require("../utils/file");
+
+const {
+  cloudinary,
+  uploadImage,
+  uploadHouseRules,
+} = require("../utils/cloudinary");
+
+
+const deleteCloudinaryAsset = async (publicId) => {
+  if (!publicId) return;
+
+  const result = await cloudinary.uploader.destroy(publicId, {
+    resource_type: "image",
+    invalidate: true,
+  });
+
+  if (!["ok", "not found"].includes(result.result)) {
+    throw new Error(
+      `Cloudinary deletion failed for ${publicId}`
+    );
+  }
+};
+
 
 
 // --------------------------------------------------
@@ -51,7 +73,11 @@ exports.getEditHome = async (req, res, next) => {
 
     res.render("host/edit-home", {
       home,
-      editing: true
+      editing: true, 
+      pageTitle: "Add Home",
+      currPage: "addHome", 
+      isLoggedIn: req.session.isLoggedIn,
+      user: req.session.user || {},
     });
 
   } catch (error) {
@@ -64,111 +90,84 @@ exports.getEditHome = async (req, res, next) => {
 // POST ADD HOME
 // --------------------------------------------------
 
-exports.postAddHome = async (req, res, next) => {
 
-  const uploadedFiles = [];
+exports.postAddHome = async (req, res, next) => {
+  const uploadedAssets = [];
 
   try {
-
     const {
-  houseName,
-  housePrice,
-  maxGuests,
-  extraGuestFee,
-  houseLocation,
-  houseRating,
-  description
-} = req.body || {};
-
+      houseName,
+      housePrice,
+      maxGuests,
+      extraGuestFee,
+      houseLocation,
+      houseRating,
+      description,
+    } = req.body || {};
 
     const photoFile = req.files?.photo?.[0];
-
-    console.log("PHOTO FILE:");
-    console.log(photoFile); 
-
     const rulesFile = req.files?.houseRules?.[0];
 
-
-    // Keep track of uploaded files
-    if (photoFile) {
-      uploadedFiles.push(photoFile.filename);
+    if (!photoFile) {
+      return res.status(400).send("Please upload a home photo.");
     }
+
+    // Upload property photo
+    const photoResult = await uploadImage(photoFile);
+    uploadedAssets.push({
+      publicId: photoResult.public_id,
+      resourceType: "image",
+    });
+
+    // Upload PDF only when supplied
+    let rulesResult = null;
 
     if (rulesFile) {
-      uploadedFiles.push(rulesFile.filename);
+      rulesResult = await uploadHouseRules(rulesFile);
+
+      uploadedAssets.push({
+        publicId: rulesResult.public_id,
+        resourceType: "image",
+      });
     }
-
-
-    // Photo is compulsory
-    if (!photoFile) {
-
-      return res.status(400).send(
-        "Please upload a home photo."
-      );
-
-    }
-
 
     const home = new Home({
-  name: houseName,
-  price: housePrice,
+      name: houseName,
+      price: Number(housePrice),
+      maxGuests: Number(maxGuests),
+      extraGuestFee: Number(extraGuestFee),
+      location: houseLocation,
+      rating: Number(houseRating),
 
-  maxGuests: Number(maxGuests),
+      photo: photoResult.secure_url,
+      photoPublicId: photoResult.public_id,
 
-  extraGuestFee: Number(extraGuestFee),
+      houseRules: rulesResult
+        ? rulesResult.secure_url
+        : null,
+      houseRulesPublicId: rulesResult
+        ? rulesResult.public_id
+        : null,
 
-  location: houseLocation,
-  rating: houseRating,
-
-  photo: photoFile.filename,
-
-  houseRules: rulesFile
-    ? rulesFile.filename
-    : null,
-
-  description: description || "",
-
-  host: req.session.user.id
-});
-
+      description: description || "",
+      host: req.session.user.id,
+    });
 
     await home.save();
 
-
     res.redirect("/host/host-homes");
-
   } catch (error) {
-
-    // If DB save fails,
-    // remove files that were already uploaded
-
-    for (const filename of uploadedFiles) {
-      await deleteFile(filename);
+    // Remove newly uploaded Cloudinary assets if saving fails
+    for (const asset of uploadedAssets) {
+      try {
+        await cloudinary.uploader.destroy(asset.publicId, {
+          resource_type: asset.resourceType,
+        });
+      } catch (cleanupError) {
+        console.error("Cloudinary cleanup failed:", cleanupError);
+      }
     }
 
-    next(error);
-  }
-};
-
-
-// --------------------------------------------------
-// GET HOST HOMES
-// --------------------------------------------------
-
-exports.getHostHomes = async (req, res, next) => {
-  try {
-    const registeredHomes = await Home.find({
-      host: req.session.user.id
-    });
-
-    res.render("host/host-home-list", {
-      registeredHomes,
-      pageTitle: "Host Homes",
-      currPage: "hostHomes",
-      isLoggedIn: req.session.isLoggedIn,
-      user: req.session.user || {}
-    });
-  } catch (error) {
     next(error);
   }
 };
@@ -178,214 +177,175 @@ exports.getHostHomes = async (req, res, next) => {
 // POST EDIT HOME
 // --------------------------------------------------
 
-exports.postEditHome = async (req, res, next) => {
 
-  const newlyUploadedFiles = [];
+exports.postEditHome = async (req, res, next) => {
+  const newAssets = [];
 
   try {
-
-    const homeId = req.params.homeId;
-
-
     const {
-  houseName,
-  housePrice,
-  maxGuests,
-  extraGuestFee,
-  houseLocation,
-  houseRating,
-  description
-} = req.body || {};
-
-
-    // Find home AND make sure it belongs
-    // to the currently logged-in host
+      houseName,
+      housePrice,
+      maxGuests,
+      extraGuestFee,
+      houseLocation,
+      houseRating,
+      description,
+    } = req.body || {};
 
     const existingHome = await getOwnedHome(
-      homeId,
+      req.params.homeId,
       req.session.user.id
     );
 
-
     if (!existingHome) {
-
       return res.status(404).send(
         "Home not found or you are not authorized."
       );
-
     }
-
 
     const photoFile = req.files?.photo?.[0];
-
     const rulesFile = req.files?.houseRules?.[0];
 
+    // Preserve old Cloudinary IDs before changing anything
+    const oldPhotoPublicId = existingHome.photoPublicId;
+    const oldRulesPublicId = existingHome.houseRulesPublicId;
 
-    // Keep track of new files
-    // in case database update fails
+    // Upload replacements first
+    let photoResult = null;
+    let rulesResult = null;
 
     if (photoFile) {
-      newlyUploadedFiles.push(photoFile.filename);
+      photoResult = await uploadImage(photoFile);
+
+      newAssets.push(photoResult.public_id);
     }
 
     if (rulesFile) {
-      newlyUploadedFiles.push(rulesFile.filename);
+      rulesResult = await uploadHouseRules(rulesFile);
+
+      newAssets.push(rulesResult.public_id);
     }
 
-
-    // Save old filenames
-
-    const oldPhoto = existingHome.photo;
-
-    const oldHouseRules = existingHome.houseRules;
-
-
-    // Update text fields
-
+    // Update regular fields
     existingHome.name = houseName;
-
-    existingHome.price = housePrice;
-
-    existingHome.maxGuests =
-  Number(maxGuests);
-
-existingHome.extraGuestFee =
-  Number(extraGuestFee);
-
+    existingHome.price = Number(housePrice);
+    existingHome.maxGuests = Number(maxGuests);
+    existingHome.extraGuestFee = Number(extraGuestFee);
     existingHome.location = houseLocation;
-
-    existingHome.rating = houseRating;
-
+    existingHome.rating = Number(houseRating);
     existingHome.description = description || "";
 
-
-    // Replace photo only if
-    // a new photo was uploaded
-
-    if (photoFile) {
-      existingHome.photo = photoFile.filename;
+    // Update photo only if a replacement was uploaded
+    if (photoResult) {
+      existingHome.photo = photoResult.secure_url;
+      existingHome.photoPublicId = photoResult.public_id;
     }
 
-
-    // Replace rules only if
-    // a new PDF was uploaded
-
-    if (rulesFile) {
-      existingHome.houseRules = rulesFile.filename;
+    // Update PDF only if a replacement was uploaded
+    if (rulesResult) {
+      existingHome.houseRules = rulesResult.secure_url;
+      existingHome.houseRulesPublicId = rulesResult.public_id;
     }
 
-
-    // Save DB first
-
+    // Save database changes before deleting old assets
     await existingHome.save();
 
-
-    // Now delete old photo
-
-    if (
-      photoFile &&
-      oldPhoto &&
-      oldPhoto !== existingHome.photo
-    ) {
-
-      await deleteFile(oldPhoto);
-
+    // Best-effort cleanup of replaced assets
+    if (photoResult && oldPhotoPublicId) {
+      try {
+        await deleteCloudinaryAsset(oldPhotoPublicId);
+      } catch (cleanupError) {
+        console.error("Old photo cleanup failed:", cleanupError);
+      }
     }
 
-
-    // Now delete old rules
-
-    if (
-      rulesFile &&
-      oldHouseRules &&
-      oldHouseRules !== existingHome.houseRules
-    ) {
-
-      await deleteFile(oldHouseRules);
-
+    if (rulesResult && oldRulesPublicId) {
+      try {
+        await deleteCloudinaryAsset(oldRulesPublicId);
+      } catch (cleanupError) {
+        console.error("Old PDF cleanup failed:", cleanupError);
+      }
     }
 
-
-    res.redirect("/host/host-homes");
-
-
+    return res.redirect("/host/host-homes");
   } catch (error) {
-
-    // DB failed.
-    // Delete newly uploaded files.
-
-    for (const filename of newlyUploadedFiles) {
-      await deleteFile(filename);
+    // Remove new uploads if the operation failed
+    for (const publicId of newAssets) {
+      try {
+        await deleteCloudinaryAsset(publicId);
+      } catch (cleanupError) {
+        console.error("New asset cleanup failed:", cleanupError);
+      }
     }
 
     next(error);
-
   }
-
 };
+
 
 
 // --------------------------------------------------
 // DELETE HOME
 // --------------------------------------------------
 
+
 exports.postDeleteHome = async (req, res, next) => {
-
   try {
-
-    const homeId = req.params.homeId;
-
-
-    // Find home belonging to current host
-
     const home = await getOwnedHome(
-      homeId,
+      req.params.homeId,
       req.session.user.id
     );
 
-
     if (!home) {
-
       return res.status(404).send(
         "Home not found or you are not authorized."
       );
-
     }
 
+    // Keep IDs before deleting the MongoDB document
+    const photoPublicId = home.photoPublicId;
+    const rulesPublicId = home.houseRulesPublicId;
 
-    // Save filenames before deleting DB document
+    // Delete database record first
+    await Home.findByIdAndDelete(home._id);
 
-    const photo = home.photo;
+    // Clean up Cloudinary assets
+    for (const publicId of [photoPublicId, rulesPublicId]) {
+      if (!publicId) continue;
 
-    const houseRules = home.houseRules;
-
-
-    // Delete database document
-
-    await Home.findByIdAndDelete(homeId);
-
-
-    // Delete image
-
-    if (photo) {
-      await deleteFile(photo);
+      try {
+        await deleteCloudinaryAsset(publicId);
+      } catch (cleanupError) {
+        console.error(
+          `Cloudinary cleanup failed for ${publicId}:`,
+          cleanupError
+        );
+      }
     }
 
-
-    // Delete rules PDF
-
-    if (houseRules) {
-      await deleteFile(houseRules);
-    }
-
-
-    res.redirect("/host/host-homes");
-
-
+    return res.redirect("/host/host-homes");
   } catch (error) {
-
     next(error);
-
   }
+};
 
+
+
+
+exports.getHostHomes = async (req, res, next) => {
+  try {
+    const registeredHomes = await Home.find({
+      host: req.session.user.id,
+    });
+
+    res.render("host/host-home-list", {
+      registeredHomes,
+      pageTitle: "Host Homes",
+      currPage: "hostHomes",
+      isLoggedIn: req.session.isLoggedIn,
+      user: req.session.user || {},
+    });
+  } catch (error) {
+    next(error);
+  }
 };

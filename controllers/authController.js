@@ -1,6 +1,7 @@
 const { validationResult, check } = require("express-validator");
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
+const Home = require("../models/home");
 
 exports.getLogin = (req, res, next) => {
   res.render("auth/login", {
@@ -74,8 +75,15 @@ exports.postLogin = async (req, res, next) => {
 
   await req.session.save();
 
-  res.redirect("/");
-
+  Home.find().then((registeredHomes) => {
+      res.render("store/index", {
+        registeredHomes: registeredHomes,
+        pageTitle: "Homes",
+        currPage: "Home",
+        isLoggedIn: req.session.isLoggedIn,
+        user: req.session.user || {},
+      });
+    });
   // res.cookie("req.session.isLoggedIn", true);
   // req.session.req.session.isLoggedIn = true;
 };

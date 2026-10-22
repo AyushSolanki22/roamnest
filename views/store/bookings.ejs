@@ -501,8 +501,8 @@
 
             <div class="booking-count">
 
-                <%= bookings.length %>
-                <%= bookings.length === 1 ? "Booking" : "Bookings" %>
+                <%= (bookings || []).length %>
+                <%= (bookings || []).length === 1 ? "Booking" : "Bookings" %>
 
             </div>
 
@@ -553,10 +553,77 @@
 
                 <% bookings.forEach(booking => { %>
 
+                    <% if (!booking.home) { %>
+                        <article class="booking-card">
+                            <div class="booking-image-container" style="display:flex;align-items:center;justify-content:center;padding:24px;">
+                                <% if (booking.status === "confirmed") { %>
+                                    <div class="status-badge status-confirmed">✓ Confirmed</div>
+                                <% } else { %>
+                                    <div class="status-badge status-cancelled">✕ Cancelled</div>
+                                <% } %>
+                                <div style="font-size:56px;" aria-hidden="true">🏡</div>
+                            </div>
+
+                            <div class="booking-content">
+                                <div class="booking-top">
+                                    <div>
+                                        <div class="property-label">Booking history</div>
+                                        <h2 class="property-name">This property is no longer available</h2>
+                                        <div class="property-location">
+                                            The property may have been removed by its host.
+                                        </div>
+                                    </div>
+                                    <div class="total-price">
+                                        <div class="total-label">Total price</div>
+                                        <div class="total-value">₹<%= booking.totalPrice %></div>
+                                    </div>
+                                </div>
+
+                                <div class="booking-divider"></div>
+
+                                <div class="details-grid">
+                                    <div class="detail-box">
+                                        <div class="detail-icon">🗓️</div>
+                                        <div class="detail-label">Check-in</div>
+                                        <div class="detail-value">
+                                            <%= new Date(booking.checkIn).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) %>
+                                        </div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-icon">🗓️</div>
+                                        <div class="detail-label">Check-out</div>
+                                        <div class="detail-value">
+                                            <%= new Date(booking.checkOut).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) %>
+                                        </div>
+                                    </div>
+                                    <div class="detail-box">
+                                        <div class="detail-icon">👥</div>
+                                        <div class="detail-label">Guests</div>
+                                        <div class="detail-value">
+                                            <%= booking.guests %> <%= booking.guests === 1 ? "Guest" : "Guests" %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="booking-info">
+                                    Booking history is preserved, but the property details and price breakdown are no longer available.
+                                </div>
+
+                                <div class="booking-actions">
+                                    <% if (booking.status === "confirmed") { %>
+                                        <span class="cancelled-message">Contact support if you need help with this booking.</span>
+                                    <% } else { %>
+                                        <span class="cancelled-message">This booking has been cancelled.</span>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </article>
+                    <% } else { %>
 
                     <article class="booking-card">
-
-
+                        
+                        
+                        
                         <!-- ============================= -->
                         <!-- PROPERTY IMAGE -->
                         <!-- ============================= -->
@@ -578,8 +645,9 @@
                             <% } %>
 
 
+
                             <img
-                                src="/uploads/<%= booking.home.photo %>"
+                                src="<%= booking.home.photo %>"
                                 alt="<%= booking.home.name %>"
                                 class="booking-image"
                             >
@@ -873,7 +941,7 @@
 
                     </article>
 
-
+                    <% } %>
                 <% }) %>
 
 

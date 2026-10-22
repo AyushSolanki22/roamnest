@@ -4,11 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-  "start": "node app.js",
-  "dev": "nodemon app.js",
-  "tailwind": "npx tailwindcss -i ./views/input.css -o ./public/output.css --watch",
-  "tailwind:build": "npx tailwindcss -i ./views/input.css -o ./public/output.css --minify"
-},
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "tailwind": "npx tailwindcss -i ./views/input.css -o ./public/output.css --watch",
+    "tailwind:build": "npx tailwindcss -i ./views/input.css -o ./public/output.css --minify"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -16,6 +16,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "body-parser": "^2.3.0",
+    "cloudinary": "^2.11.0",
     "connect-mongodb-session": "^5.0.0",
     "cookie-parser": "^1.4.7",
     "dotenv": "^18.0.5",

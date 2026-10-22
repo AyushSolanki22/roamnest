@@ -1,123 +1,78 @@
-////file upload and all
 
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
 
-// Upload folder location
-const uploadPath = path.join(__dirname, "../uploads");
+// Allowed image types
+const allowedImageMimeTypes = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
 
-// Create uploads folder automatically
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-}
+const allowedImageExtensions = [
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+];
 
-// Storage configuration
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadPath);
-  },
-
-  filename: function (req, file, cb) {
-    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9);
-
-    const extension = path.extname(file.originalname).toLowerCase();
-
-    cb(null, uniqueName + extension);
-  },
-});
-
-// Allowed MIME types
-const allowedMimeTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
-
-// Allowed file extensions
-const allowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
-
-// File filter
+// Validate uploaded files
 const fileFilter = (req, file, cb) => {
-
   const extension = path
     .extname(file.originalname)
     .toLowerCase();
 
-
-  // PHOTO
+  // Property photo
   if (file.fieldname === "photo") {
+    const validMimeType =
+      allowedImageMimeTypes.includes(file.mimetype);
 
-    const allowedMimeTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/jpg",
-      "image/webp"
-    ];
+    const validExtension =
+      allowedImageExtensions.includes(extension);
 
-    const allowedExtensions = [
-      ".jpg",
-      ".jpeg",
-      ".png",
-      ".webp"
-    ];
-
-    const isMimeTypeAllowed =
-      allowedMimeTypes.includes(file.mimetype);
-
-    const isExtensionAllowed =
-      allowedExtensions.includes(extension);
-
-    if (isMimeTypeAllowed && isExtensionAllowed) {
+    if (validMimeType && validExtension) {
       return cb(null, true);
     }
 
     return cb(
       new Error(
         "Invalid photo type. Only JPG, JPEG, PNG and WEBP images are allowed."
-      ),
-      false
+      )
     );
   }
 
-
-  // HOUSE RULES
+  // House rules PDF
   if (file.fieldname === "houseRules") {
-
-    const isMimeTypeAllowed =
+    const validMimeType =
       file.mimetype === "application/pdf";
 
-    const isExtensionAllowed =
-      extension === ".pdf";
+    const validExtension = extension === ".pdf";
 
-    if (isMimeTypeAllowed && isExtensionAllowed) {
+    if (validMimeType && validExtension) {
       return cb(null, true);
     }
 
     return cb(
       new Error(
         "Invalid house rules file. Only PDF files are allowed."
-      ),
-      false
+      )
     );
   }
 
-
-  // Unknown file field
-  return cb(
-    new Error("Unexpected file field."),
-    false
-  );
+  // Reject unexpected fields
+  return cb(new Error("Unexpected file field."));
 };
 
-// Multer configuration
+// Keep uploaded files in memory temporarily.
+// Cloudinary will store them permanently in the next step.
 const upload = multer({
-  storage: storage,
-
-  fileFilter: fileFilter,
+  storage: multer.memoryStorage(),
+  fileFilter,
 
   limits: {
-    files: 2, 
+    files: 2,
+    fileSize: 5 * 1024 * 1024, // 5 MB per file
   },
 });
 
 module.exports = upload;
-
-// what is used is: from chatgpt for this--  https://chatgpt.com/s/t_6aa8218731f081918fdec80d71526015    https://chatgpt.com/s/t_6aa831b770608191b4859df69d864283   https://chatgpt.com/s/t_6aa9476b53b481918f48a940e83fc4ee https://chatgpt.com/s/t_6ac23d03ae448191b084276c3a5582e2
-

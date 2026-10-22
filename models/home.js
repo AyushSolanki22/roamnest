@@ -24,9 +24,32 @@ const homeSchema = mongoose.Schema({
   },
   location: { type: String, required: true },
   rating: { type: Number, required: true },
-  photo: { type: String, required: true },
-  description: { type: String, required: true },
-  houseRules: { type: String, default: null },
+  
+photo: {
+  type: String,
+  required: true,
+},
+
+photoPublicId: {
+  type: String,
+  default: null,
+},
+
+description: {
+  type: String,
+  required: true,
+},
+
+houseRules: {
+  type: String,
+  default: null,
+},
+
+houseRulesPublicId: {
+  type: String,
+  default: null,
+},
+
   host: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

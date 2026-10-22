@@ -5,6 +5,16 @@ const upload = require("../middleware/fileUpload");
 const requireLogin = require("../middleware/auth");
 const hostController = require("../controllers/hostController");
 
+console.log("requireLogin:", typeof requireLogin);
+console.log("getAddHome:", typeof hostController.getAddHome);
+console.log("postAddHome:", typeof hostController.postAddHome);
+console.log("getHostHomes:", typeof hostController.getHostHomes);
+console.log("getEditHome:", typeof hostController.getEditHome);
+console.log("postEditHome:", typeof hostController.postEditHome);
+console.log("postDeleteHome:", typeof hostController.postDeleteHome);
+console.log("upload.fields:", typeof upload.fields);
+
+
 // Display add-home page
 hostRouter.get(
   "/add-home",

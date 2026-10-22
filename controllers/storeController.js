@@ -20,7 +20,7 @@ exports.getIndex = (req, res, next) => {
   Home.find().then((registeredHomes) => { 
     res.render("store/index", {
       registeredHomes: registeredHomes,
-      pageTitle: "airbnb Home",
+      pageTitle: "RoamNest Home",
       currPage: "index",
       isLoggedIn: req.session.isLoggedIn, 
       user: req.session.user || {},

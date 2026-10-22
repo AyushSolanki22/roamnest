@@ -1,185 +1,267 @@
 # 🏡 Roamnest — Full-Stack Accommodation Booking Platform
 
-**Find your stay. Make it yours.**
+A full-stack **Airbnb-inspired accommodation booking platform** built to understand and implement real-world web application concepts such as authentication, authorization, property management, bookings, sessions, file uploads, Cloudinary integration, MongoDB relationships, and dynamic pricing.
 
-Roamnest is a full-stack, Airbnb-inspired accommodation booking platform built to explore real-world web development concepts, including authentication, property management, booking workflows, session persistence, file uploads, MongoDB relationships, and dynamic pricing.
-
-> **Disclaimer:** Roamnest is an independent educational project inspired by accommodation booking platforms. It is not affiliated with, sponsored by, or endorsed by Airbnb.
+> **Disclaimer:** Roamnest is an independent educational project inspired by Airbnb. It is not affiliated with, sponsored by, or endorsed by Airbnb.
 
 ---
 
 ## ✨ Features
 
 ### 🔐 Authentication & Authorization
+
 - User registration and login
-- Password hashing using `bcrypt`
+- Secure password hashing using **bcrypt**
 - Session-based authentication
-- Persistent sessions using MongoDB session storage
+- Persistent login sessions using MongoDB session storage
 - Logout functionality
 - Guest and Host account types
-- Password strength and email validation
+- Strong password validation
+- Email validation
 - Confirm-password validation
-- Terms and conditions acceptance
+- Terms & conditions acceptance
 - Protected routes for authenticated users
-- Host-only routes and property ownership checks
+- Host-only protected routes
+- Authorization checks to ensure hosts can only manage their own properties
+
+---
 
 ### 🏡 Property Management
+
 Hosts can:
-- Create property listings with names, descriptions, and locations
-- Set nightly prices and maximum guest capacity
-- Configure additional guest charges
-- Add property ratings and descriptions
-- Upload property images and house-rules PDFs
-- View and manage their listings
-- Edit property details
-- Replace uploaded images and documents
-- Delete property listings
 
-### 📸 File Uploads
-Implemented with **Multer**.
+- Register a new property
+- Add property name and location
+- Set nightly pricing
+- Set maximum guest capacity
+- Configure extra guest charges
+- Add property ratings
+- Add property descriptions
+- Upload property images
+- Upload house-rules PDF documents
+- View their listed properties
+- Edit existing properties
+- Replace property images
+- Replace house-rules documents
+- Delete properties
 
-Supported formats:
-- **Property images:** JPG, JPEG, PNG, WEBP
-- **House rules:** PDF
+The application also cleans up replaced or deleted Cloudinary assets to prevent unnecessary files from remaining in cloud storage.
 
-The upload middleware validates file types and extensions before accepting uploads.
+---
 
-File storage depends on the configured upload implementation. If Cloudinary is enabled, uploaded assets can be stored remotely instead of relying on temporary server storage.
+### 📸 File Upload System
+
+Implemented using **Multer** and **Cloudinary**.
+
+Supported property images:
+
+- JPG
+- JPEG
+- PNG
+- WEBP
+
+Supported house rules:
+
+- PDF
+
+The upload system validates MIME types and file extensions before accepting files.
+
+Uploaded assets are stored in Cloudinary rather than relying on the application's local filesystem for persistent storage. The application stores asset URLs and public IDs so that uploaded files can be displayed and managed, including when properties are edited or deleted.
+
+---
 
 ### ❤️ Favourites
+
+Users can:
+
 - Add properties to favourites
-- View favourite properties
+- View their favourite properties
 - Remove properties from favourites
-- Store property references in MongoDB and populate them when needed
+
+Favourites are stored as MongoDB references to property documents and populated when required.
+
+---
 
 ### 📅 Booking System
-Authenticated users can book properties with:
-- Check-in and check-out dates
-- Guest count
-- Calculated number of nights
+
+Authenticated users can book available properties.
+
+The booking system includes:
+
+- Check-in date
+- Check-out date
+- Number of guests
+- Number of nights
 - Base nightly price
-- Extra guest charges
+- Extra guest fee
+- Extra guest count
 - Base booking amount
 - Extra guest amount
 - Final booking price
 - Booking status
 
-Booking validation covers:
-- Past or invalid dates
-- Check-out dates before check-in
-- Guest capacity limits
-- Hosts attempting to book their own properties
-- Overlapping bookings for the same property
+The system also prevents:
+
+- Booking a property in the past
+- Invalid check-in/check-out dates
+- Check-out before check-in
+- Exceeding the property's guest capacity
+- Hosts booking their own properties
+- Double booking for overlapping dates
+
+---
 
 ### 💰 Dynamic Pricing
-Roamnest calculates booking costs using the property's nightly rate and applicable extra guest charges.
 
-**Base amount**
+The booking price is calculated automatically.
+
+#### Base amount
+
 ```text
-Nightly Price × Number of Nights
+Base Price × Number of Nights
 ```
 
-**Extra guest amount**
+#### Extra guest amount
+
 ```text
 Extra Guests × Extra Guest Fee × Number of Nights
 ```
 
-**Final price**
+#### Final price
+
 ```text
 Base Amount + Extra Guest Amount
 ```
 
-### ❌ Booking Management
-- View personal bookings
-- Review booking details
-- Cancel confirmed bookings
-- Retain cancelled bookings with a `cancelled` status
+This makes the booking system more realistic than a simple static-price implementation.
 
-### 🛡️ Validation & Security
-- Password and email validation
-- Authentication and authorization middleware
-- Host ownership checks
-- Booking ownership checks
-- Guest capacity validation
-- Date validation and booking conflict checks
-- Upload type and extension validation
-- Centralized error-handling middleware
+---
+
+### ❌ Booking Cancellation
+
+Users can:
+
+- View their bookings
+- See booking details
+- Cancel confirmed bookings
+
+Cancelled bookings are retained with a `cancelled` status instead of being immediately removed from the database.
+
+---
+
+### 🛡️ Security & Validation
+
+The backend implements multiple validation and authorization checks.
+
+Examples include:
+
+- Password strength validation
+- Email validation
+- User-type validation
+- Authentication middleware
+- Host ownership validation
+- Booking ownership validation
+- Maximum guest validation
+- Date validation
+- Booking conflict detection
+- File-type validation
+- File-extension validation
+- Error-handling middleware
 
 ---
 
 ## 🧰 Tech Stack
 
-| Layer | Technologies |
-|---|---|
-| Runtime | Node.js |
-| Backend | Express.js |
-| Database | MongoDB Atlas |
-| ODM | Mongoose |
-| Authentication | Express Session, bcryptjs |
-| Session storage | connect-mongodb-session |
-| Validation | express-validator |
-| File uploads | Multer |
-| Templating | EJS |
-| Frontend | HTML5, CSS3, Tailwind CSS |
-| Asset storage | Local storage or Cloudinary, depending on configuration |
+### Backend
+
+- **Node.js**
+- **Express.js**
+- **MongoDB**
+- **Mongoose**
+- **Express Session**
+- **connect-mongodb-session**
+- **bcryptjs**
+- **express-validator**
+- **Multer**
+- **Cloudinary**
+
+### Frontend
+
+- **EJS**
+- **HTML5**
+- **CSS3**
+- **Tailwind CSS**
+- Responsive design
+
+### Database
+
+**MongoDB Atlas**
+
+Main relationships include:
+
+```text
+User
+ ├── Favourites → Home
+ ├── Bookings → Home
+ └── Hosted Homes → Home
+
+Home
+ └── Host → User
+
+Booking
+ ├── User → User
+ └── Home → Home
+```
 
 ---
 
-## 🏗️ Project Architecture
+## 🏗️ Architecture
 
-The application follows a modular, MVC-style Express architecture.
+The application follows a modular Express architecture.
 
 ```text
 roamnest/
+│
 ├── controllers/
 │   ├── authController.js
 │   ├── bookingController.js
 │   ├── hostController.js
 │   ├── storeController.js
 │   └── error.js
+│
 ├── models/
 │   ├── user.js
 │   ├── home.js
 │   └── booking.js
+│
 ├── routes/
 │   ├── auth.js
 │   ├── booking.js
 │   ├── host.js
 │   └── store.js
+│
 ├── views/
 │   ├── auth/
 │   ├── host/
 │   ├── store/
 │   └── partials/
+│
 ├── public/
 │   ├── css/
 │   └── ...
+│
 ├── middleware/
+│   └── fileUpload.js
+│
 ├── utils/
-├── uploads/              # If local uploads are used
+│   ├── cloudinary.js
+│   └── ...
+│
 ├── app.js
 ├── package.json
 ├── package-lock.json
-├── .env                  # Not committed
+├── .env
 └── .gitignore
-```
-
-*The exact folder structure may vary as the project evolves.*
-
-### Database Relationships
-
-```text
-User
- ├── Favourites ──> Home
- ├── Bookings ────> Booking
- └── Hosted Homes ─> Home
-
-Home
- └── Host ────────> User
-
-Booking
- ├── User ────────> User
- └── Home ────────> Home
 ```
 
 ---
@@ -190,35 +272,43 @@ Create a `.env` file in the project root.
 
 ```env
 PORT=3000
-MONGODB_URI=your_mongodb_connection_string
-SESSION_SECRET=your_long_random_session_secret
 
-# Required only if Cloudinary uploads are configured
+MONGODB_URI=your_mongodb_connection_string
+
+SESSION_SECRET=your_random_session_secret
+
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 ```
 
-Keep credentials private. **Never commit `.env` or expose API secrets in your repository.**
+### Example
+
+```env
+PORT=3000
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/roamnest
+SESSION_SECRET=replace_with_a_long_random_secret
+
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+> Never commit your `.env` file to GitHub. Replace example values with your actual credentials, and never expose your Cloudinary API secret.
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- Node.js and npm
-- A MongoDB database, such as MongoDB Atlas
-- Git
-
 ### 1. Clone the repository
 
-Replace `YOUR_USERNAME` with your GitHub username.
+Replace `YOUR_USERNAME` with your GitHub username and adjust the repository URL if your GitHub repository uses a different name.
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/roamnest.git
 ```
 
-### 2. Enter the project directory
+### 2. Navigate into the project
 
 ```bash
 cd roamnest
@@ -230,74 +320,94 @@ cd roamnest
 npm install
 ```
 
-### 4. Configure environment variables
+### 4. Create `.env`
 
-Create a `.env` file in the project root and add your MongoDB connection string and session secret. Add Cloudinary credentials if your current upload implementation uses Cloudinary.
+Create a `.env` file in the root directory:
+
+```env
+PORT=3000
+MONGODB_URI=your_mongodb_connection_string
+SESSION_SECRET=your_session_secret
+
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
 
 ### 5. Start the application
+
+For development:
 
 ```bash
 npm start
 ```
 
-If your project defines a separate development script, you can use:
-
-```bash
-npm run dev
-```
-
-### 6. Open Roamnest
-
-Visit:
+Then open:
 
 ```text
 http://localhost:3000
 ```
 
-*Use the port configured by your application if it differs from `3000`.*
-
 ---
 
-## 👥 User Roles
+## 👤 User Roles
 
 ### Guest
-- Register and log in
-- Browse available properties
+
+Guests can:
+
+- Create an account
+- Log in
+- Browse properties
 - View property details
-- Add or remove favourites
+- Add properties to favourites
 - Book properties
 - View bookings
 - Cancel bookings
 
 ### Host
-- Register as a host
-- Create property listings
-- Upload property images and house-rules documents
-- View hosted properties
-- Edit listing information
-- Replace uploaded assets
-- Delete listings
+
+Hosts can:
+
+- Create an account as a host
+- Add properties
+- Upload property images
+- Upload house rules
+- Edit properties
+- Replace uploaded files
+- Delete properties
+- View their listed properties
 
 ---
 
-## 🔄 Booking Workflow
+## 📊 Booking Flow
 
 ```text
-Browse Properties
-       ↓
-Select a Property
-       ↓
-Choose Dates and Guests
-       ↓
-Validate Dates and Guest Capacity
-       ↓
+User
+ │
+ ▼
+Select Property
+ │
+ ▼
+Choose Check-in / Check-out
+ │
+ ▼
+Select Number of Guests
+ │
+ ▼
+Validate Dates & Guest Limit
+ │
+ ▼
 Check Booking Conflicts
-       ↓
-Calculate Booking Price
-       ↓
+ │
+ ▼
+Calculate Price
+ │
+ ▼
 Create Booking
-       ↓
-View Booking in My Bookings
+ │
+ ▼
+My Bookings
 ```
 
 ---
@@ -305,99 +415,166 @@ View Booking in My Bookings
 ## 🗄️ Data Models
 
 ### User
-Stores user identity, email, hashed password, account type, and favourite property references.
+
+Stores:
+
+- First name
+- Last name
+- Email
+- Hashed password
+- User type
+- Favourite properties
 
 ### Home
-Stores property details, location, pricing, guest capacity, extra guest fees, images, descriptions, house rules, and host references.
+
+Stores:
+
+- Property name
+- Price
+- Maximum guests
+- Extra guest fee
+- Location
+- Rating
+- Photo URL
+- Cloudinary public ID for uploaded assets, where configured
+- Description
+- House rules document URL
+- House-rules Cloudinary public ID, where configured
+- Host reference
 
 ### Booking
-Stores property and user references, check-in/check-out dates, guest count, number of nights, price breakdown, total amount, and booking status.
+
+Stores:
+
+- Property reference
+- User reference
+- Check-in date
+- Check-out date
+- Number of guests
+- Number of nights
+- Base price
+- Extra guest fee
+- Extra guest count
+- Base amount
+- Extra guest amount
+- Total price
+- Booking status
 
 ---
 
-## 🧠 Key Learning Outcomes
+## 🧠 What I Learned
 
-Building Roamnest has provided practical experience with:
-- Express.js architecture and MVC-style organization
-- Routing, controllers, and middleware
-- MongoDB data modeling and Mongoose references
-- Mongoose `populate()`
-- Authentication and authorization
-- Session persistence using MongoDB
-- Password hashing and form validation
-- File uploads and asset management
+This project helped me understand and implement:
+
+- Express.js application architecture
+- MVC-style separation
+- RESTful routing concepts
+- MongoDB database design
+- Mongoose schemas and references
+- MongoDB `populate()`
+- Authentication
+- Authorization
+- Session management
+- Persistent sessions with MongoDB
+- Password hashing
+- Form validation
+- File uploads using Multer
+- Cloudinary asset storage and management
 - CRUD operations
-- Booking workflows and date calculations
+- Booking systems
+- Date calculations
 - Overlapping-date detection
 - Dynamic pricing
 - Error handling
-- EJS server-side rendering
-- Responsive UI development with Tailwind CSS
+- Middleware
+- Server-side rendering with EJS
+- Responsive UI development
+- Tailwind CSS
 
 ---
 
-## 🔮 Roadmap
+## 🔮 Future Improvements
 
-Potential improvements planned for future versions:
+Possible future improvements include:
 
-- [ ] Transparent price breakdown (**TruePrice**)
-- [ ] Advanced property search and filters
-- [ ] Location-based search and interactive maps
-- [ ] User reviews and ratings
-- [ ] Online payment integration
-- [ ] Booking confirmation emails
-- [ ] Notifications
-- [ ] Host availability calendar
-- [ ] Multiple images per property
-- [ ] Profile management and password reset
-- [ ] Improved mobile experience
-- [ ] REST API layer
-- [ ] React frontend
-- [ ] Docker support
-- [ ] Production deployment and monitoring
+- 💰 **TruePrice** — transparent booking cost breakdown showing nightly cost, number of nights, applicable extra guest charges, fees, and final price
+- ⭐ User reviews and ratings
+- 🔎 Advanced property search
+- 📍 Location-based search
+- 🗺️ Interactive maps
+- 💳 Online payment integration
+- 📧 Booking confirmation emails
+- 🔔 Notifications
+- 📅 Host booking calendar
+- 🖼️ Multiple property images
+- 👤 Profile management
+- 🔐 Password reset
+- 📱 Improved mobile experience
+- ⚡ REST API layer
+- ⚛️ React frontend
+- 🐳 Docker support
+- 🚀 Production deployment and monitoring
 
 ---
 
 ## 📸 Screenshots
 
-Add screenshots of the current Roamnest UI to showcase the application.
+Add screenshots of the major parts of the application here.
 
-Suggested structure:
+Recommended screenshots:
+
+1. Home page
+2. Property listing
+3. Property details
+4. Login
+5. Signup
+6. Host dashboard
+7. Add property page
+8. Booking page
+9. My bookings
+10. Favourites
+
+Example:
 
 ```text
 screenshots/
 ├── home.png
 ├── homes-list.png
-├── property-details.png
+├── property-details1.png
+├── property-details2.png
+├── property-details3.png
 ├── login.png
-├── signup.png
+├── signup1.png
+├── signup2.png
 ├── host-dashboard.png
-├── add-property.png
-├── booking.png
+├── add-property1.png
+├── add-property2.png
+├── add-property3.png
+├── booking1.png
+├── booking2.png
 ├── bookings.png
+├── bookings2.png
 └── favourites.png
 ```
-
-Once these images are added to the repository, embed them here using relative Markdown image paths.
 
 ---
 
 ## 👨‍💻 Author
 
-**Ayush Solanki**
+**Ayush**
 
 B.Tech Student | Full-Stack Developer | AI & Technology Enthusiast
 
 ---
 
-## 🚧 Project Status
+## ⭐ Project Status
 
-**Active Development**
+🚧 **Active Development**
 
-Roamnest is an evolving portfolio project focused on building practical full-stack development skills, improving the user experience, and implementing more robust booking functionality.
+Roamnest is continuously being improved with new features, security improvements, a better user experience, and more robust production architecture.
 
 ---
 
 ## 📄 License
 
-This project is intended for educational and portfolio purposes. Add a `LICENSE` file if you want to distribute it under a specific open-source license.
+This project is intended for educational and portfolio purposes.

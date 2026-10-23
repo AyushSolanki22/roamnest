@@ -82,8 +82,15 @@ exports.getHomeDetails = (req, res, next) => {
       res.redirect("/homes");
       console.log("Home not found");
     } else {
+      const maxGuests = Number(home.maxGuests);
+      const includedGuests =
+        home.includedGuests === undefined || home.includedGuests === null
+          ? Math.min(2, maxGuests)
+          : Number(home.includedGuests);
+
       res.render("store/home-detail", {
         home: home,
+        includedGuests: includedGuests,
         pageTitle: "Home Detail",
         currPage: "Home",
         isLoggedIn: req.session.isLoggedIn,

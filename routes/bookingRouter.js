@@ -8,14 +8,12 @@ const bookingController =
 const requireLogin =
   require("../middleware/auth");
 
-
 // Booking page
 bookingRouter.get(
   "/book/:homeId",
   requireLogin,
   bookingController.getBooking
 );
-
 
 // Create booking
 bookingRouter.post(
@@ -24,6 +22,12 @@ bookingRouter.post(
   bookingController.postBooking
 );
 
+// Booking confirmation (must be owned by the signed-in guest)
+bookingRouter.get(
+  "/booking-confirmation/:bookingId",
+  requireLogin,
+  bookingController.getBookingConfirmation
+);
 
 // User bookings
 bookingRouter.get(
@@ -32,13 +36,11 @@ bookingRouter.get(
   bookingController.getBookings
 );
 
-
 // Cancel booking
 bookingRouter.post(
   "/cancel-booking/:bookingId",
   requireLogin,
   bookingController.postCancelBooking
 );
-
 
 module.exports = bookingRouter;

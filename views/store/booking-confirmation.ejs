@@ -1,0 +1,89 @@
+<%- include('../partials/head') %>
+
+<style>
+  .confirmation-page { max-width: 1000px; margin: 0 auto; padding: 48px 22px 72px; color: #1f2937; }
+  .confirmation-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 24px; overflow: hidden; box-shadow: 0 16px 42px rgba(15, 23, 42, .08); }
+  .confirmation-banner { padding: 30px; background: linear-gradient(135deg, #ecfdf5, #f0fdf4); border-bottom: 1px solid #bbf7d0; }
+  .confirmation-icon { display: inline-flex; width: 48px; height: 48px; border-radius: 50%; align-items: center; justify-content: center; background: #16a34a; color: white; font-size: 27px; margin-bottom: 12px; }
+  .confirmation-banner h1 { margin: 0; font-size: clamp(26px, 4vw, 36px); font-weight: 800; color: #166534; }
+  .confirmation-banner p { margin: 8px 0 0; color: #166534; }
+  .confirmation-content { padding: 28px 30px 32px; }
+  .confirmation-property { display: flex; align-items: center; gap: 18px; margin-bottom: 26px; }
+  .confirmation-property img { width: 120px; height: 100px; object-fit: cover; border-radius: 14px; background: #f1f5f9; }
+  .confirmation-property h2 { margin: 0 0 6px; font-size: 23px; font-weight: 800; }
+  .muted { color: #6b7280; }
+  .confirmation-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 20px 0 28px; }
+  .confirmation-detail { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 14px; padding: 15px; }
+  .confirmation-detail span { display: block; color: #6b7280; font-size: 12px; margin-bottom: 6px; }
+  .confirmation-detail strong { overflow-wrap: anywhere; }
+  .price-breakdown { border: 1px solid #e5e7eb; border-radius: 16px; padding: 20px; }
+  .price-breakdown h3 { margin: 0 0 16px; font-size: 18px; font-weight: 800; }
+  .price-line { display: flex; justify-content: space-between; gap: 18px; margin: 11px 0; }
+  .price-line strong { text-align: right; }
+  .price-total { border-top: 1px solid #e5e7eb; padding-top: 15px; margin-top: 16px; font-size: 19px; font-weight: 800; }
+  .confirmation-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+  .confirmation-button { display: inline-flex; justify-content: center; align-items: center; padding: 12px 18px; border-radius: 11px; font-weight: 700; text-decoration: none; }
+  .primary-button { background: #e11d48; color: white; }
+  .secondary-button { border: 1px solid #d1d5db; color: #374151; background: white; }
+  @media (max-width: 650px) { .confirmation-content, .confirmation-banner { padding: 22px; } .confirmation-grid { grid-template-columns: 1fr 1fr; } .confirmation-property { align-items: flex-start; } .confirmation-property img { width: 92px; height: 88px; } .price-line { font-size: 14px; } }
+</style>
+
+<main class="confirmation-page">
+  <section class="confirmation-card" aria-labelledby="confirmation-title">
+    <header class="confirmation-banner">
+      <% if (booking.status === 'confirmed') { %>
+        <div class="confirmation-icon" aria-hidden="true">✓</div>
+        <h1 id="confirmation-title">Booking confirmed!</h1>
+        <p>Your Roamnest booking has been saved successfully.</p>
+      <% } else { %>
+        <h1 id="confirmation-title">Booking details</h1>
+        <p class="muted">This booking is currently marked as <%= booking.status %>.</p>
+      <% } %>
+    </header>
+
+    <div class="confirmation-content">
+      <% if (booking.home) { %>
+        <div class="confirmation-property">
+          <% if (booking.home.photo) { %>
+            <img src="<%= booking.home.photo %>" alt="Photo of <%= booking.home.name %>">
+          <% } %>
+          <div>
+            <div class="muted" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Roamnest stay</div>
+            <h2><%= booking.home.name %></h2>
+            <div class="muted"><%= booking.home.location %></div>
+          </div>
+        </div>
+      <% } else { %>
+        <p class="muted">The property is no longer available, but this saved booking record is retained for your reference.</p>
+      <% } %>
+
+      <div class="confirmation-grid">
+        <div class="confirmation-detail"><span>Check-in</span><strong><%= new Date(booking.checkIn).toLocaleDateString('en-IN') %></strong></div>
+        <div class="confirmation-detail"><span>Check-out</span><strong><%= new Date(booking.checkOut).toLocaleDateString('en-IN') %></strong></div>
+        <div class="confirmation-detail"><span>Duration</span><strong><%= booking.nights %> night<%= booking.nights === 1 ? '' : 's' %></strong></div>
+        <div class="confirmation-detail"><span>Guests</span><strong><%= booking.guests %></strong></div>
+        <div class="confirmation-detail"><span>Booking status</span><strong><%= booking.status.charAt(0).toUpperCase() + booking.status.slice(1) %></strong></div>
+        <div class="confirmation-detail"><span>Booking reference</span><strong><%= booking._id %></strong></div>
+      </div>
+
+      <section class="price-breakdown" aria-labelledby="price-breakdown-title">
+        <h3 id="price-breakdown-title">Saved price breakdown</h3>
+        <div class="price-line"><span class="muted">Nightly base price</span><strong>₹<%= Number(booking.basePrice).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></strong></div>
+        <div class="price-line"><span class="muted">Number of nights</span><strong><%= booking.nights %></strong></div>
+        <div class="price-line"><span class="muted">Accommodation subtotal</span><strong>₹<%= Number(booking.baseAmount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></strong></div>
+        <div class="price-line"><span class="muted">Guests</span><strong><%= booking.guests %></strong></div>
+        <div class="price-line"><span class="muted">Guests included in base price</span><strong><%= booking.includedGuests === undefined || booking.includedGuests === null ? 'Not recorded for this older booking' : booking.includedGuests %></strong></div>
+        <div class="price-line"><span class="muted">Extra guests charged</span><strong><%= booking.extraGuests === undefined || booking.extraGuests === null ? 'Not recorded for this older booking' : booking.extraGuests %></strong></div>
+        <div class="price-line"><span class="muted">Extra guest fee per guest, per night</span><strong><%= booking.extraGuestFee === undefined || booking.extraGuestFee === null ? 'Not recorded for this older booking' : '₹' + Number(booking.extraGuestFee).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></strong></div>
+        <div class="price-line"><span class="muted">Extra-guest charges</span><strong><%= booking.extraGuestAmount === undefined || booking.extraGuestAmount === null ? 'Not recorded for this older booking' : '₹' + Number(booking.extraGuestAmount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></strong></div>
+        <div class="price-line price-total"><span>Total booking price</span><strong>₹<%= Number(booking.totalPrice).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></strong></div>
+        <p class="muted" style="font-size:13px;line-height:1.6;margin:16px 0 0;">This breakdown uses the price snapshot saved when the booking was created. No service fee is included unless the platform explicitly configures one.</p>
+      </section>
+
+      <div class="confirmation-actions">
+        <a class="confirmation-button primary-button" href="/bookings">View my bookings</a>
+        <% if (booking.home) { %><a class="confirmation-button secondary-button" href="/homes/<%= booking.home._id %>">View property</a><% } %>
+      </div>
+    </div>
+  </section>
+</main>

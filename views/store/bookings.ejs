@@ -1,10 +1,8 @@
+
 <%- include('../partials/head') %>
 
 <style>
-
-    * {
-        box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
         margin: 0;
@@ -13,20 +11,11 @@
         font-family: Arial, Helvetica, sans-serif;
     }
 
-    /* =========================================
-       PAGE
-    ========================================= */
-
     .bookings-page {
         max-width: 1150px;
         margin: 0 auto;
         padding: 45px 24px 70px;
     }
-
-
-    /* =========================================
-       HEADER
-    ========================================= */
 
     .page-header {
         display: flex;
@@ -69,11 +58,6 @@
         font-weight: 700;
         white-space: nowrap;
     }
-
-
-    /* =========================================
-       EMPTY STATE
-    ========================================= */
 
     .empty-bookings {
         background: white;
@@ -125,21 +109,11 @@
         transform: translateY(-1px);
     }
 
-
-    /* =========================================
-       BOOKING LIST
-    ========================================= */
-
     .booking-list {
         display: flex;
         flex-direction: column;
         gap: 24px;
     }
-
-
-    /* =========================================
-       BOOKING CARD
-    ========================================= */
 
     .booking-card {
         background: white;
@@ -156,11 +130,6 @@
         transform: translateY(-3px);
         box-shadow: 0 16px 40px rgba(0, 0, 0, 0.10);
     }
-
-
-    /* =========================================
-       IMAGE
-    ========================================= */
 
     .booking-image-container {
         position: relative;
@@ -182,9 +151,6 @@
         transform: scale(1.03);
     }
 
-
-    /* STATUS */
-
     .status-badge {
         position: absolute;
         top: 16px;
@@ -194,6 +160,7 @@
         font-size: 12px;
         font-weight: 800;
         backdrop-filter: blur(8px);
+        z-index: 1;
     }
 
     .status-confirmed {
@@ -208,15 +175,11 @@
         border: 1px solid #fecaca;
     }
 
-
-    /* =========================================
-       BOOKING CONTENT
-    ========================================= */
-
     .booking-content {
         padding: 28px 30px;
         display: flex;
         flex-direction: column;
+        min-width: 0;
     }
 
     .booking-top {
@@ -240,6 +203,7 @@
         color: #111827;
         font-size: 27px;
         font-weight: 800;
+        overflow-wrap: anywhere;
     }
 
     .property-location {
@@ -247,9 +211,6 @@
         color: #6b7280;
         font-size: 14px;
     }
-
-
-    /* PRICE */
 
     .total-price {
         text-align: right;
@@ -268,25 +229,15 @@
         font-weight: 800;
     }
 
-
-    /* =========================================
-       DIVIDER
-    ========================================= */
-
     .booking-divider {
         height: 1px;
         background: #e5e7eb;
         margin: 23px 0;
     }
 
-
-    /* =========================================
-       DATE / GUEST DETAILS
-    ========================================= */
-
     .details-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
     }
 
@@ -295,6 +246,7 @@
         border: 1px solid #e5e7eb;
         border-radius: 13px;
         padding: 14px;
+        min-width: 0;
     }
 
     .detail-icon {
@@ -315,12 +267,8 @@
         font-size: 14px;
         font-weight: 700;
         margin-top: 4px;
+        overflow-wrap: anywhere;
     }
-
-
-    /* =========================================
-       BOOKING INFO
-    ========================================= */
 
     .booking-info {
         margin-top: 18px;
@@ -336,10 +284,43 @@
         color: #374151;
     }
 
+    .price-breakdown-title {
+        font-weight: 800;
+        color: #374151;
+        margin-bottom: 12px;
+    }
 
-    /* =========================================
-       ACTIONS
-    ========================================= */
+    .price-breakdown-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 9px;
+    }
+
+    .price-breakdown-row span {
+        min-width: 0;
+    }
+
+    .price-breakdown-row strong {
+        white-space: nowrap;
+        text-align: right;
+    }
+
+    .price-breakdown-total {
+        border-top: 1px solid #fecdd3;
+        padding-top: 12px;
+        margin-top: 12px;
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        font-size: 16px;
+    }
+
+    .price-breakdown-total strong:last-child {
+        color: #e11d48;
+        white-space: nowrap;
+    }
 
     .booking-actions {
         margin-top: auto;
@@ -370,7 +351,6 @@
         border-color: #9ca3af;
     }
 
-
     .cancel-button {
         border: none;
         background: #fee2e2;
@@ -387,20 +367,13 @@
         background: #fecaca;
     }
 
-
     .cancelled-message {
         color: #9ca3af;
         font-size: 13px;
         font-weight: 600;
     }
 
-
-    /* =========================================
-       RESPONSIVE
-    ========================================= */
-
     @media (max-width: 850px) {
-
         .booking-card {
             grid-template-columns: 1fr;
         }
@@ -414,14 +387,11 @@
         }
 
         .details-grid {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
-
     }
 
-
     @media (max-width: 650px) {
-
         .bookings-page {
             padding: 30px 15px 50px;
         }
@@ -462,105 +432,172 @@
             text-align: center;
         }
 
-    }
+        .booking-actions form {
+            width: 100%;
+        }
 
+        .price-breakdown-row,
+        .price-breakdown-total {
+            gap: 10px;
+        }
+    }
 </style>
 
 </head>
 
 <body>
-
     <%- include('../partials/header') %>
 
-
     <main class="bookings-page">
-
-
-        <!-- ================================= -->
         <!-- PAGE HEADER -->
-        <!-- ================================= -->
-
         <div class="page-header">
-
             <div>
+                <div class="header-small">Your stays</div>
 
-                <div class="header-small">
-                    Your stays
-                </div>
-
-                <h1 class="page-title">
-                    My Bookings
-                </h1>
+                <h1 class="page-title">My Bookings</h1>
 
                 <p class="page-subtitle">
                     View and manage all your upcoming and previous stays.
                 </p>
-
             </div>
-
 
             <div class="booking-count">
-
                 <%= (bookings || []).length %>
                 <%= (bookings || []).length === 1 ? "Booking" : "Bookings" %>
-
             </div>
-
         </div>
 
-
-
-        <!-- ================================= -->
         <!-- NO BOOKINGS -->
-        <!-- ================================= -->
-
         <% if (!bookings || bookings.length === 0) { %>
-
             <div class="empty-bookings">
+                <div class="empty-icon">🏡</div>
 
-                <div class="empty-icon">
-                    🏡
-                </div>
-
-                <h2>
-                    No bookings yet
-                </h2>
+                <h2>No bookings yet</h2>
 
                 <p>
                     You haven't reserved a stay yet.
                     Find a home and start planning your next trip.
                 </p>
 
-                <a
-                    href="/homes"
-                    class="explore-button"
-                >
+                <a href="/homes" class="explore-button">
                     Explore Homes
                 </a>
-
             </div>
-
         <% } else { %>
 
-
-
-            <!-- ================================= -->
             <!-- BOOKINGS -->
-            <!-- ================================= -->
-
             <div class="booking-list">
-
-
                 <% bookings.forEach(booking => { %>
+                    <%
+                        // Use saved booking values for historical prices.
+                        // The home's current price may have changed since booking.
+
+                        // Explicitly check missing values before Number conversion:
+                        // Number(null) and Number("") both evaluate to zero.
+                        const savedNightlyPrice =
+                            booking.basePrice !== null &&
+                            booking.basePrice !== undefined &&
+                            booking.basePrice !== "" &&
+                            Number.isFinite(Number(booking.basePrice)) &&
+                            Number(booking.basePrice) >= 0
+                                ? Number(booking.basePrice)
+                                : null;
+
+                        const savedBaseAmount =
+                            booking.baseAmount !== null &&
+                            booking.baseAmount !== undefined &&
+                            booking.baseAmount !== "" &&
+                            Number.isFinite(Number(booking.baseAmount)) &&
+                            Number(booking.baseAmount) >= 0
+                                ? Number(booking.baseAmount)
+                                : null;
+
+                        const savedExtraGuestAmount =
+                            booking.extraGuestAmount !== null &&
+                            booking.extraGuestAmount !== undefined &&
+                            booking.extraGuestAmount !== "" &&
+                            Number.isFinite(Number(booking.extraGuestAmount)) &&
+                            Number(booking.extraGuestAmount) >= 0
+                                ? Number(booking.extraGuestAmount)
+                                : null;
+
+                        const savedTotalPrice =
+                            booking.totalPrice !== null &&
+                            booking.totalPrice !== undefined &&
+                            booking.totalPrice !== "" &&
+                            Number.isFinite(Number(booking.totalPrice)) &&
+                            Number(booking.totalPrice) >= 0
+                                ? Number(booking.totalPrice)
+                                : null;
+
+                        const savedExtraGuestFee =
+                            booking.extraGuestFee !== null &&
+                            booking.extraGuestFee !== undefined &&
+                            booking.extraGuestFee !== "" &&
+                            Number.isFinite(Number(booking.extraGuestFee)) &&
+                            Number(booking.extraGuestFee) >= 0
+                                ? Number(booking.extraGuestFee)
+                                : null;
+
+                        const savedIncludedGuests =
+                            booking.includedGuests !== null &&
+                            booking.includedGuests !== undefined &&
+                            booking.includedGuests !== "" &&
+                            Number.isInteger(Number(booking.includedGuests)) &&
+                            Number(booking.includedGuests) >= 1
+                                ? Number(booking.includedGuests)
+                                : null;
+
+                        const savedExtraGuests =
+                            booking.extraGuests !== null &&
+                            booking.extraGuests !== undefined &&
+                            booking.extraGuests !== "" &&
+                            Number.isInteger(Number(booking.extraGuests)) &&
+                            Number(booking.extraGuests) >= 0
+                                ? Number(booking.extraGuests)
+                                : null;
+
+                        const formatINR = (amount) => {
+                            const safeAmount = Number(amount);
+
+                            return Number.isFinite(safeAmount) && safeAmount >= 0
+                                ? safeAmount.toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })
+                                : "Not available";
+                        };
+
+                        const formatDate = (value) => {
+                            const date = new Date(value);
+
+                            return !Number.isNaN(date.getTime())
+                                ? date.toLocaleDateString("en-IN", {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric"
+                                })
+                                : "Not available";
+                        };
+                    %>
 
                     <% if (!booking.home) { %>
+                        <!-- PROPERTY DELETED: KEEP HISTORICAL BOOKING VISIBLE -->
                         <article class="booking-card">
-                            <div class="booking-image-container" style="display:flex;align-items:center;justify-content:center;padding:24px;">
+                            <div
+                                class="booking-image-container"
+                                style="display:flex;align-items:center;justify-content:center;padding:24px;"
+                            >
                                 <% if (booking.status === "confirmed") { %>
-                                    <div class="status-badge status-confirmed">✓ Confirmed</div>
+                                    <div class="status-badge status-confirmed">
+                                        ✓ Confirmed
+                                    </div>
                                 <% } else { %>
-                                    <div class="status-badge status-cancelled">✕ Cancelled</div>
+                                    <div class="status-badge status-cancelled">
+                                        ✕ Cancelled
+                                    </div>
                                 <% } %>
+
                                 <div style="font-size:56px;" aria-hidden="true">🏡</div>
                             </div>
 
@@ -568,14 +605,24 @@
                                 <div class="booking-top">
                                     <div>
                                         <div class="property-label">Booking history</div>
-                                        <h2 class="property-name">This property is no longer available</h2>
+
+                                        <h2 class="property-name">
+                                            This property is no longer available
+                                        </h2>
+
                                         <div class="property-location">
                                             The property may have been removed by its host.
                                         </div>
                                     </div>
+
                                     <div class="total-price">
-                                        <div class="total-label">Total price</div>
-                                        <div class="total-value">₹<%= booking.totalPrice %></div>
+                                        <div class="total-label">Total booking price</div>
+
+                                        <div class="total-value">
+                                            ₹<%= savedTotalPrice !== null
+                                                ? formatINR(savedTotalPrice)
+                                                : "Not available" %>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -585,374 +632,319 @@
                                     <div class="detail-box">
                                         <div class="detail-icon">🗓️</div>
                                         <div class="detail-label">Check-in</div>
+
                                         <div class="detail-value">
-                                            <%= new Date(booking.checkIn).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) %>
+                                            <%= formatDate(booking.checkIn) %>
                                         </div>
                                     </div>
+
                                     <div class="detail-box">
                                         <div class="detail-icon">🗓️</div>
                                         <div class="detail-label">Check-out</div>
+
                                         <div class="detail-value">
-                                            <%= new Date(booking.checkOut).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) %>
+                                            <%= formatDate(booking.checkOut) %>
                                         </div>
                                     </div>
+
                                     <div class="detail-box">
                                         <div class="detail-icon">👥</div>
                                         <div class="detail-label">Guests</div>
+
                                         <div class="detail-value">
-                                            <%= booking.guests %> <%= booking.guests === 1 ? "Guest" : "Guests" %>
+                                            <%= booking.guests %>
+                                            <%= Number(booking.guests) === 1 ? "Guest" : "Guests" %>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="booking-info">
-                                    Booking history is preserved, but the property details and price breakdown are no longer available.
+                                    <div class="price-breakdown-title">
+                                        Saved price breakdown
+                                    </div>
+
+                                    <div class="price-breakdown-row">
+                                        <span>
+                                            Nightly rate × <%= booking.nights %>
+                                            <%= Number(booking.nights) === 1 ? "night" : "nights" %>
+                                        </span>
+
+                                        <strong>
+                                            <% if (savedNightlyPrice !== null) { %>
+                                                ₹<%= formatINR(savedNightlyPrice) %>
+                                            <% } else { %>
+                                                Historical rate unavailable
+                                            <% } %>
+                                        </strong>
+                                    </div>
+
+                                    <div class="price-breakdown-row">
+                                        <span>Guests included in base price</span>
+                                        <strong>
+                                            <%= savedIncludedGuests !== null
+                                                ? savedIncludedGuests
+                                                : "Not recorded" %>
+                                        </strong>
+                                    </div>
+
+                                    <div class="price-breakdown-row">
+                                        <span>Accommodation subtotal</span>
+                                        <strong>
+                                            <%= savedBaseAmount !== null
+                                                ? "₹" + formatINR(savedBaseAmount)
+                                                : "Not available" %>
+                                        </strong>
+                                    </div>
+
+                                    <div class="price-breakdown-row">
+                                        <span>
+                                            Extra guest charges
+                                            <% if (savedExtraGuests !== null && savedExtraGuests > 0) { %>
+                                                (<%= savedExtraGuests %> extra
+                                                <%= savedExtraGuests === 1 ? "guest" : "guests" %>)
+                                            <% } %>
+                                        </span>
+
+                                        <strong>
+                                            <%= savedExtraGuestAmount !== null
+                                                ? "₹" + formatINR(savedExtraGuestAmount)
+                                                : "Not available" %>
+                                        </strong>
+                                    </div>
+
+                                    <div class="price-breakdown-row">
+                                        <span>Extra guest fee per night</span>
+                                        <strong>
+                                            <%= savedExtraGuestFee !== null
+                                                ? "₹" + formatINR(savedExtraGuestFee)
+                                                : "Not recorded" %>
+                                        </strong>
+                                    </div>
+
+                                    <div class="price-breakdown-total">
+                                        <strong>Total booking price</strong>
+                                        <strong>
+                                            <%= savedTotalPrice !== null
+                                                ? "₹" + formatINR(savedTotalPrice)
+                                                : "Not available" %>
+                                        </strong>
+                                    </div>
+
+                                    <p style="margin:12px 0 0;">
+                                        The property has been removed, but the saved booking details remain available.
+                                        Historical fields that were not recorded when the booking was created cannot
+                                        be reconstructed reliably.
+                                    </p>
                                 </div>
 
                                 <div class="booking-actions">
                                     <% if (booking.status === "confirmed") { %>
-                                        <span class="cancelled-message">Contact support if you need help with this booking.</span>
+                                        <span class="cancelled-message">
+                                            Contact support if you need help with this booking.
+                                        </span>
                                     <% } else { %>
-                                        <span class="cancelled-message">This booking has been cancelled.</span>
+                                        <span class="cancelled-message">
+                                            This booking has been cancelled.
+                                        </span>
                                     <% } %>
                                 </div>
                             </div>
                         </article>
+
                     <% } else { %>
-
-                    <article class="booking-card">
-                        
-                        
-                        
-                        <!-- ============================= -->
-                        <!-- PROPERTY IMAGE -->
-                        <!-- ============================= -->
-
-                        <div class="booking-image-container">
-
-                            <% if (booking.status === "confirmed") { %>
-
-                                <div class="status-badge status-confirmed">
-                                    ✓ Confirmed
-                                </div>
-
-                            <% } else { %>
-
-                                <div class="status-badge status-cancelled">
-                                    ✕ Cancelled
-                                </div>
-
-                            <% } %>
-
-
-
-                            <img
-                                src="<%= booking.home.photo %>"
-                                alt="<%= booking.home.name %>"
-                                class="booking-image"
-                            >
-
-                        </div>
-
-
-
-                        <!-- ============================= -->
-                        <!-- BOOKING CONTENT -->
-                        <!-- ============================= -->
-
-                        <div class="booking-content">
-
-
-                            <!-- PROPERTY + PRICE -->
-
-                            <div class="booking-top">
-
-                                <div>
-
-                                    <div class="property-label">
-                                        Your stay
-                                    </div>
-
-                                    <h2 class="property-name">
-                                        <%= booking.home.name %>
-                                    </h2>
-
-                                    <div class="property-location">
-                                        📍 <%= booking.home.location %>
-                                    </div>
-
-                                </div>
-
-
-                                <div class="total-price">
-
-                                    <div class="total-label">
-                                        Total price
-                                    </div>
-
-                                    <div class="total-value">
-                                        ₹<%= booking.totalPrice %>
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-
-                            <div class="booking-divider"></div>
-
-
-
-                            <!-- ============================= -->
-                            <!-- BOOKING DETAILS -->
-                            <!-- ============================= -->
-
-                            <div class="details-grid">
-
-
-                                <!-- CHECK IN -->
-
-                                <div class="detail-box">
-
-                                    <div class="detail-icon">
-                                        🗓️
-                                    </div>
-
-                                    <div class="detail-label">
-                                        Check-in
-                                    </div>
-
-                                    <div class="detail-value">
-
-                                        <%= new Date(
-                                            booking.checkIn
-                                        ).toLocaleDateString(
-                                            "en-IN",
-                                            {
-                                                day: "numeric",
-                                                month: "short",
-                                                year: "numeric"
-                                            }
-                                        ) %>
-
-                                    </div>
-
-                                </div>
-
-
-
-                                <!-- CHECK OUT -->
-
-                                <div class="detail-box">
-
-                                    <div class="detail-icon">
-                                        🗓️
-                                    </div>
-
-                                    <div class="detail-label">
-                                        Check-out
-                                    </div>
-
-                                    <div class="detail-value">
-
-                                        <%= new Date(
-                                            booking.checkOut
-                                        ).toLocaleDateString(
-                                            "en-IN",
-                                            {
-                                                day: "numeric",
-                                                month: "short",
-                                                year: "numeric"
-                                            }
-                                        ) %>
-
-                                    </div>
-
-                                </div>
-
-
-
-                                <!-- GUESTS -->
-
-                                <div class="detail-box">
-
-                                    <div class="detail-icon">
-                                        👥
-                                    </div>
-
-                                    <div class="detail-label">
-                                        Guests
-                                    </div>
-
-                                    <div class="detail-value">
-
-                                        <%= booking.guests %>
-                                        <%= booking.guests === 1
-                                            ? "Guest"
-                                            : "Guests"
-                                        %>
-
-                                    </div>
-
-                                </div>
-
-
-                            </div>
-
-
-
-                            <!-- ============================= -->
-                            <!-- PRICE INFORMATION -->
-                            <!-- ============================= -->
-
-                            <div class="booking-info">
-
-    <div style="
-        font-weight:800;
-        color:#374151;
-        margin-bottom:12px;
-    ">
-        Price breakdown
-    </div>
-
-
-    <div style="
-        display:flex;
-        justify-content:space-between;
-        margin-bottom:7px;
-    ">
-
-        <span>
-            ₹<%= booking.home.price %> ×
-            <%= booking.nights %>
-            <%= booking.nights === 1 ? "night" : "nights" %>
-        </span>
-
-        <strong>
-            ₹<%= booking.basePrice %>
-        </strong>
-
-    </div>
-
-
-    <div style="
-        display:flex;
-        justify-content:space-between;
-        margin-bottom:7px;
-    ">
-
-        <span>
-            Extra guest charges
-        </span>
-
-        <strong>
-            ₹<%= booking.extraGuestCharges %>
-        </strong>
-
-    </div>
-
-
-    <div style="
-        display:flex;
-        justify-content:space-between;
-        margin-bottom:12px;
-    ">
-
-        <span>
-            Service fee
-        </span>
-
-        <strong>
-            ₹<%= booking.serviceFee %>
-        </strong>
-
-    </div>
-
-
-    <div style="
-        border-top:1px solid #fecdd3;
-        padding-top:12px;
-        display:flex;
-        justify-content:space-between;
-        font-size:16px;
-    ">
-
-        <strong>
-            Total paid
-        </strong>
-
-        <strong style="color:#e11d48;">
-            ₹<%= booking.totalPrice %>
-        </strong>
-
-    </div>
-
-</div>
-
-
-                            <!-- ============================= -->
-                            <!-- ACTIONS -->
-                            <!-- ============================= -->
-
-                            <div class="booking-actions">
-
-
-                                <a
-                                    href="/homes/<%= booking.home._id %>"
-                                    class="view-property"
-                                >
-                                    View Property →
-                                </a>
-
-
-
+                        <!-- PROPERTY STILL EXISTS -->
+                        <article class="booking-card">
+                            <!-- PROPERTY IMAGE -->
+                            <div class="booking-image-container">
                                 <% if (booking.status === "confirmed") { %>
-
-                                    <form
-                                        action="/cancel-booking/<%= booking._id %>"
-                                        method="POST"
-                                    >
-
-                                        <button
-                                            type="submit"
-                                            class="cancel-button"
-                                            onclick="return confirm('Are you sure you want to cancel this booking?');"
-                                        >
-                                            Cancel Booking
-                                        </button>
-
-                                    </form>
-
+                                    <div class="status-badge status-confirmed">
+                                        ✓ Confirmed
+                                    </div>
                                 <% } else { %>
-
-                                    <span class="cancelled-message">
-                                        This booking has been cancelled.
-                                    </span>
-
+                                    <div class="status-badge status-cancelled">
+                                        ✕ Cancelled
+                                    </div>
                                 <% } %>
 
-
+                                <img
+                                    src="<%= booking.home.photo %>"
+                                    alt="<%= booking.home.name %>"
+                                    class="booking-image"
+                                >
                             </div>
 
+                            <!-- BOOKING CONTENT -->
+                            <div class="booking-content">
+                                <div class="booking-top">
+                                    <div>
+                                        <div class="property-label">Your stay</div>
 
-                        </div>
+                                        <h2 class="property-name">
+                                            <%= booking.home.name %>
+                                        </h2>
 
+                                        <div class="property-location">
+                                            📍 <%= booking.home.location %>
+                                        </div>
+                                    </div>
 
-                    </article>
+                                    <div class="total-price">
+                                        <div class="total-label">Total booking price</div>
 
+                                        <div class="total-value">
+                                            ₹<%= savedTotalPrice !== null
+                                                ? formatINR(savedTotalPrice)
+                                                : "Not available" %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="booking-divider"></div>
+
+                                <!-- BOOKING DETAILS -->
+                                <div class="details-grid">
+                                    <div class="detail-box">
+                                        <div class="detail-icon">🗓️</div>
+                                        <div class="detail-label">Check-in</div>
+
+                                        <div class="detail-value">
+                                            <%= formatDate(booking.checkIn) %>
+                                        </div>
+                                    </div>
+
+                                    <div class="detail-box">
+                                        <div class="detail-icon">🗓️</div>
+                                        <div class="detail-label">Check-out</div>
+
+                                        <div class="detail-value">
+                                            <%= formatDate(booking.checkOut) %>
+                                        </div>
+                                    </div>
+
+                                    <div class="detail-box">
+                                        <div class="detail-icon">👥</div>
+                                        <div class="detail-label">Guests</div>
+
+                                        <div class="detail-value">
+                                            <%= booking.guests %>
+                                            <%= Number(booking.guests) === 1 ? "Guest" : "Guests" %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- SAVED PRICE INFORMATION -->
+                                <div class="booking-info">
+                                    <div class="price-breakdown-title">
+                                        Price breakdown
+                                    </div>
+
+                                    <div class="price-breakdown-row">
+                                        <span>
+                                            Nightly rate × <%= booking.nights %>
+                                            <%= Number(booking.nights) === 1 ? "night" : "nights" %>
+                                        </span>
+
+                                        <strong>
+                                            <% if (savedNightlyPrice !== null) { %>
+                                                ₹<%= formatINR(savedNightlyPrice) %>
+                                            <% } else { %>
+                                                Historical rate unavailable
+                                            <% } %>
+                                        </strong>
+                                    </div>
+
+                                    <div class="price-breakdown-row">
+                                        <span>Guests included in base price</span>
+                                        <strong>
+                                            <%= savedIncludedGuests !== null
+                                                ? savedIncludedGuests
+                                                : "Not recorded" %>
+                                        </strong>
+                                    </div>
+
+                                    <div class="price-breakdown-row">
+                                        <span>Accommodation subtotal</span>
+                                        <strong>
+                                            <%= savedBaseAmount !== null
+                                                ? "₹" + formatINR(savedBaseAmount)
+                                                : "Not available" %>
+                                        </strong>
+                                    </div>
+
+                                    <div class="price-breakdown-row">
+                                        <span>
+                                            Extra guest charges
+                                            <% if (savedExtraGuests !== null && savedExtraGuests > 0) { %>
+                                                (<%= savedExtraGuests %> extra
+                                                <%= savedExtraGuests === 1 ? "guest" : "guests" %>)
+                                            <% } %>
+                                        </span>
+
+                                        <strong>
+                                            <%= savedExtraGuestAmount !== null
+                                                ? "₹" + formatINR(savedExtraGuestAmount)
+                                                : "Not available" %>
+                                        </strong>
+                                    </div>
+
+                                    <div class="price-breakdown-row">
+                                        <span>Extra guest fee per night</span>
+                                        <strong>
+                                            <%= savedExtraGuestFee !== null
+                                                ? "₹" + formatINR(savedExtraGuestFee)
+                                                : "Not recorded" %>
+                                        </strong>
+                                    </div>
+
+                                    <!--
+                                        Service fee is not currently part of the Booking schema.
+                                        Keep this comment for a future intentional service-fee feature.
+                                    -->
+
+                                    <div class="price-breakdown-total">
+                                        <strong>Total booking price</strong>
+                                        <strong>
+                                            <%= savedTotalPrice !== null
+                                                ? "₹" + formatINR(savedTotalPrice)
+                                                : "Not available" %>
+                                        </strong>
+                                    </div>
+                                </div>
+
+                                <!-- ACTIONS -->
+                                <div class="booking-actions">
+                                    <a
+                                        href="/homes/<%= booking.home._id %>"
+                                        class="view-property"
+                                    >
+                                        View Property →
+                                    </a>
+
+                                    <% if (booking.status === "confirmed") { %>
+                                        <form
+                                            action="/cancel-booking/<%= booking._id %>"
+                                            method="POST"
+                                        >
+                                            <button
+                                                type="submit"
+                                                class="cancel-button"
+                                                onclick="return confirm('Are you sure you want to cancel this booking?');"
+                                            >
+                                                Cancel Booking
+                                            </button>
+                                        </form>
+                                    <% } else { %>
+                                        <span class="cancelled-message">
+                                            This booking has been cancelled.
+                                        </span>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </article>
                     <% } %>
                 <% }) %>
-
-
             </div>
-
-
         <% } %>
-
-
     </main>
-
 </body>
-
 </html>

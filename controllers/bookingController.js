@@ -1,6 +1,105 @@
+const mongoose = require("mongoose");
 const Booking = require("../models/booking");
 const Home = require("../models/home");
 
+// ======================================================
+// TRUEPRICE HELPERS
+// ======================================================
+
+// Work in integer paise for calculations, then convert to rupees only when
+// persisting/displaying values. This avoids adding fractional rupees using
+// binary floating-point arithmetic.
+const toPaise = (amount) => {
+  const numericAmount = Number(amount);
+  if (!Number.isFinite(numericAmount) || numericAmount < 0) return null;
+  const paise = Math.round((numericAmount + Number.EPSILON) * 100);
+  return Number.isSafeInteger(paise) ? paise : null;
+};
+
+const fromPaise = (paise) => paise / 100;
+
+// Parse HTML date-input values strictly as YYYY-MM-DD.
+const parseDateOnly = (value) => {
+  if (
+    typeof value !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(value)
+  ) {
+    return null;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+// Calculate nights using calendar dates.
+const calculateNights = (startDate, endDate) => {
+  const startDay = Date.UTC(
+    startDate.getFullYear(),
+    startDate.getMonth(),
+    startDate.getDate()
+  );
+
+  const endDay = Date.UTC(
+    endDate.getFullYear(),
+    endDate.getMonth(),
+    endDate.getDate()
+  );
+
+  return (endDay - startDay) / (1000 * 60 * 60 * 24);
+};
+
+// Format a Date as a local YYYY-MM-DD calendar date.
+// Avoid toISOString() because it can shift dates across time zones.
+const formatDateOnly = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+// Redirect back to the booking page while preserving form inputs.
+const redirectToBookingWithError = (
+  res,
+  homeId,
+  message,
+  formValues = {}
+) => {
+  const query = new URLSearchParams();
+
+  query.set("error", message);
+
+  if (formValues.checkIn) {
+    query.set("checkIn", String(formValues.checkIn));
+  }
+
+  if (formValues.checkOut) {
+    query.set("checkOut", String(formValues.checkOut));
+  }
+
+  if (
+    formValues.guests !== undefined &&
+    formValues.guests !== null &&
+    String(formValues.guests).trim() !== ""
+  ) {
+    query.set("guests", String(formValues.guests));
+  }
+
+  return res.redirect(
+    `/book/${homeId}?${query.toString()}`
+  );
+};
 
 // ======================================================
 // GET BOOKING PAGE
@@ -8,7 +107,15 @@ const Home = require("../models/home");
 
 exports.getBooking = async (req, res, next) => {
   try {
+    if (!req.session?.user?.id) {
+      return res.redirect("/login");
+    }
+
     const homeId = req.params.homeId;
+
+    if (!mongoose.isValidObjectId(homeId)) {
+      return res.status(400).send("Invalid home ID.");
+    }
 
     const home = await Home.findById(homeId);
 
@@ -16,33 +123,102 @@ exports.getBooking = async (req, res, next) => {
       return res.status(404).send("Home not found.");
     }
 
-    // Host cannot book their own property
-    if (
-      home.host.toString() ===
-      req.session.user.id.toString()
-    ) {
+    // Host cannot book their own property.
+    if (home.host.toString() === req.session.user.id.toString()) {
       return res.status(403).send(
         "You cannot book your own home."
       );
     }
 
-    res.render("store/booking", {
-      home: home,
+    // Backward compatibility for older properties.
+    const maxGuests = Number(home.maxGuests);
+    const storedIncludedGuests = home.includedGuests;
 
+    const includedGuests =
+      storedIncludedGuests === undefined ||
+      storedIncludedGuests === null
+        ? Math.min(2, maxGuests)
+        : Number(storedIncludedGuests);
+
+    // Only accept valid date strings when restoring form inputs.
+    const selectedCheckIn =
+      typeof req.query.checkIn === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(req.query.checkIn)
+        ? req.query.checkIn
+        : "";
+
+    const selectedCheckOut =
+      typeof req.query.checkOut === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(req.query.checkOut)
+        ? req.query.checkOut
+        : "";
+
+    const requestedGuests = Number(req.query.guests);
+
+    const selectedGuests =
+      req.query.guests !== undefined &&
+      Number.isInteger(requestedGuests) &&
+      requestedGuests >= 1 &&
+      requestedGuests <= maxGuests
+        ? requestedGuests
+        : Math.min(includedGuests, maxGuests);
+
+    // Allow only known, user-facing messages.
+    const allowedErrors = new Set([
+      "This home is already booked for the selected dates.",
+      "Please enter valid check-in and check-out dates.",
+      "Check-out date must be after check-in date.",
+      "Check-in date cannot be in the past.",
+      "Please select the number of guests.",
+      "Invalid number of guests.",
+      `This property allows a maximum of ${maxGuests} guests.`,
+      "This property has invalid pricing. Please contact the host.",
+      "Invalid number of nights.",
+      "Unable to calculate the booking price. Please try again."
+    ]);
+
+    const bookingError =
+      typeof req.query.error === "string" &&
+      allowedErrors.has(req.query.error)
+        ? req.query.error
+        : "";
+
+    // Fetch confirmed bookings whose checkout is still in the future.
+    // The browser uses these ranges to warn about date conflicts.
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const existingBookings = await Booking.find({
+      home: homeId,
+      status: "confirmed",
+      checkOut: { $gt: today }
+    })
+      .select("checkIn checkOut -_id")
+      .lean();
+
+    // Keep date-only strings in local calendar format to avoid UTC shifts.
+    const unavailableDateRanges = existingBookings.map((booking) => ({
+      checkIn: formatDateOnly(new Date(booking.checkIn)),
+      checkOut: formatDateOnly(new Date(booking.checkOut))
+    }));
+
+    return res.render("store/booking", {
+      home,
+      includedGuests,
+      bookingError,
+      unavailableDateRanges,
+      selectedCheckIn,
+      selectedCheckOut,
+      selectedGuests,
       pageTitle: "Book Home",
-
       currPage: "bookings",
-
       isLoggedIn: req.session.isLoggedIn,
-
-      user: req.session.user || {},
+      user: req.session.user || {}
     });
-
   } catch (error) {
     next(error);
   }
 };
-
 
 // ======================================================
 // POST BOOKING
@@ -50,307 +226,259 @@ exports.getBooking = async (req, res, next) => {
 
 exports.postBooking = async (req, res, next) => {
   try {
+    if (!req.session?.user?.id) {
+      return res.redirect("/login");
+    }
 
     const homeId = req.params.homeId;
+    const { checkIn, checkOut, guests } = req.body;
 
-    const {
-      checkIn,
-      checkOut,
-      guests
-    } = req.body;
-
+    const formValues = { checkIn, checkOut, guests };
 
     // --------------------------------------------------
     // FIND HOME
     // --------------------------------------------------
 
+    if (!mongoose.isValidObjectId(homeId)) {
+      return res.status(400).send("Invalid home ID.");
+    }
+
     const home = await Home.findById(homeId);
 
     if (!home) {
-      return res.status(404).send(
-        "Home not found."
-      );
+      return res.status(404).send("Home not found.");
     }
-
 
     // --------------------------------------------------
     // PREVENT HOST FROM BOOKING OWN HOME
     // --------------------------------------------------
 
-    if (
-      home.host.toString() ===
-      req.session.user.id.toString()
-    ) {
+    if (home.host.toString() === req.session.user.id.toString()) {
       return res.status(403).send(
         "You cannot book your own home."
       );
     }
 
-
     // --------------------------------------------------
     // VALIDATE DATES
     // --------------------------------------------------
 
-    const startDate = new Date(checkIn);
+    const startDate = parseDateOnly(checkIn);
+    const endDate = parseDateOnly(checkOut);
 
-    const endDate = new Date(checkOut);
-
-
-    if (
-      !checkIn ||
-      !checkOut ||
-      isNaN(startDate.getTime()) ||
-      isNaN(endDate.getTime())
-    ) {
-      return res.status(400).send(
-        "Please enter valid check-in and check-out dates."
+    if (!startDate || !endDate) {
+      return redirectToBookingWithError(
+        res,
+        homeId,
+        "Please enter valid check-in and check-out dates.",
+        formValues
       );
     }
-
-
-    // Check-out must be after check-in
 
     if (endDate <= startDate) {
-      return res.status(400).send(
-        "Check-out date must be after check-in date."
+      return redirectToBookingWithError(
+        res,
+        homeId,
+        "Check-out date must be after check-in date.",
+        formValues
       );
     }
-
 
     // --------------------------------------------------
     // PREVENT PAST BOOKINGS
     // --------------------------------------------------
 
     const today = new Date();
-
     today.setHours(0, 0, 0, 0);
 
-    startDate.setHours(0, 0, 0, 0);
-
-    endDate.setHours(0, 0, 0, 0);
-
-
     if (startDate < today) {
-      return res.status(400).send(
-        "Check-in date cannot be in the past."
+      return redirectToBookingWithError(
+        res,
+        homeId,
+        "Check-in date cannot be in the past.",
+        formValues
       );
     }
 
+    // --------------------------------------------------
+    // VALIDATE GUESTS
+    // --------------------------------------------------
 
-    // --------------------------------------------------
-    // GUEST VALIDATION
-    // --------------------------------------------------
+    if (
+      guests === undefined ||
+      guests === null ||
+      String(guests).trim() === ""
+    ) {
+      return redirectToBookingWithError(
+        res,
+        homeId,
+        "Please select the number of guests.",
+        formValues
+      );
+    }
 
     const numberOfGuests = Number(guests);
-
 
     if (
       !Number.isInteger(numberOfGuests) ||
       numberOfGuests < 1
     ) {
-      return res.status(400).send(
-        "Invalid number of guests."
+      return redirectToBookingWithError(
+        res,
+        homeId,
+        "Invalid number of guests.",
+        formValues
       );
     }
 
-
     // --------------------------------------------------
-    // MAXIMUM GUEST CHECK
+    // VALIDATE PROPERTY CAPACITY AND INCLUDED GUESTS
     // --------------------------------------------------
 
-    const maxGuests = Number(
-      home.maxGuests || 1
-    );
+    const maxGuests = Number(home.maxGuests);
 
+    if (
+      !Number.isInteger(maxGuests) ||
+      maxGuests < 1
+    ) {
+      return res.status(400).send(
+        "This property has an invalid guest capacity. Please contact the host."
+      );
+    }
 
     if (numberOfGuests > maxGuests) {
-      return res.status(400).send(
-        `This property allows a maximum of ${maxGuests} guests.`
+      return redirectToBookingWithError(
+        res,
+        homeId,
+        `This property allows a maximum of ${maxGuests} guests.`,
+        formValues
       );
     }
 
+    const storedIncludedGuests = home.includedGuests;
+
+    const includedGuests =
+      storedIncludedGuests === undefined ||
+      storedIncludedGuests === null
+        ? Math.min(2, maxGuests)
+        : Number(storedIncludedGuests);
+
+    if (
+      !Number.isInteger(includedGuests) ||
+      includedGuests < 1 ||
+      includedGuests > maxGuests
+    ) {
+      return res.status(400).send(
+        "This property has invalid included guest settings. Please contact the host."
+      );
+    }
 
     // --------------------------------------------------
-    // PRICE VALUES
+    // VALIDATE PRICE VALUES
     // --------------------------------------------------
 
-    const basePrice = Number(
-      home.price || 0
-    );
+    // Always use server-side property values.
+    const rawBasePrice = Number(home.price);
+    const rawExtraGuestFee = Number(home.extraGuestFee ?? 0);
+    const basePricePaise = toPaise(rawBasePrice);
+    const extraGuestFeePaise = toPaise(rawExtraGuestFee);
 
-    const extraGuestFee = Number(
-      home.extraGuestFee || 0
-    );
-
+    if (
+      basePricePaise === null ||
+      extraGuestFeePaise === null
+    ) {
+      return redirectToBookingWithError(
+        res,
+        homeId,
+        "This property has invalid pricing. Please contact the host.",
+        formValues
+      );
+    }
 
     // --------------------------------------------------
     // CALCULATE NUMBER OF NIGHTS
     // --------------------------------------------------
 
-    const millisecondsPerDay =
-      1000 * 60 * 60 * 24;
+    const nights = calculateNights(startDate, endDate);
 
-
-    const nights = Math.ceil(
-      (endDate - startDate) /
-      millisecondsPerDay
-    );
-
-
-    if (nights <= 0) {
-      return res.status(400).send(
-        "Invalid number of nights."
+    if (!Number.isInteger(nights) || nights <= 0) {
+      return redirectToBookingWithError(
+        res,
+        homeId,
+        "Invalid number of nights.",
+        formValues
       );
     }
 
-
     // --------------------------------------------------
-    // CALCULATE BASE PRICE
-    // --------------------------------------------------
-
-    /*
-      Example:
-
-      Price per night = ₹1000
-      Nights = 3
-
-      Base amount = ₹1000 × 3
-                  = ₹3000
-    */
-
-    const baseAmount =
-      basePrice * nights;
-
-
-    // --------------------------------------------------
-    // CALCULATE EXTRA GUESTS
+    // TRUEPRICE CALCULATION
     // --------------------------------------------------
 
-    /*
-      First guest is included in base price.
+    const extraGuests = Math.max(0, numberOfGuests - includedGuests);
+    const baseAmountPaise = basePricePaise * nights;
+    const extraGuestAmountPaise = extraGuests * extraGuestFeePaise * nights;
+    const totalPricePaise = baseAmountPaise + extraGuestAmountPaise;
 
-      Example:
-
-      Guests = 1
-      Extra guests = 0
-
-      Guests = 2
-      Extra guests = 1
-
-      Guests = 3
-      Extra guests = 2
-
-      Guests = 4
-      Extra guests = 3
-    */
-
-    const extraGuests =
-      Math.max(0, numberOfGuests - 1);
-
-
-    // --------------------------------------------------
-    // CALCULATE EXTRA GUEST CHARGES
-    // --------------------------------------------------
-
-    /*
-      Example:
-
-      Extra guest fee = ₹200/night
-      Extra guests = 2
-      Nights = 3
-
-      ₹200 × 2 × 3
-      = ₹1200
-    */
-
-    const extraGuestAmount =
-      extraGuests *
-      extraGuestFee *
-      nights;
-
-
-    // --------------------------------------------------
-    // FINAL TOTAL
-    // --------------------------------------------------
-
-    const totalPrice =
-      baseAmount +
-      extraGuestAmount;
-
+    if (
+      !Number.isSafeInteger(baseAmountPaise) ||
+      !Number.isSafeInteger(extraGuestAmountPaise) ||
+      !Number.isSafeInteger(totalPricePaise)
+    ) {
+      return redirectToBookingWithError(
+        res,
+        homeId,
+        "Unable to calculate the booking price. Please try again.",
+        formValues
+      );
+    }
 
     // --------------------------------------------------
     // CHECK FOR BOOKING CONFLICT
     // --------------------------------------------------
 
-    /*
-      Booking A:
-      10 Oct → 15 Oct
-
-      Booking B:
-      12 Oct → 18 Oct
-
-      These overlap.
-
-      Therefore Booking B should be rejected.
-    */
-
-    const conflictingBooking =
-      await Booking.findOne({
-        home: homeId,
-
-        status: "confirmed",
-
-        checkIn: {
-          $lt: endDate
-        },
-
-        checkOut: {
-          $gt: startDate
-        }
-      });
-
+    // Checkout on another booking's check-in date is allowed.
+    // Overlapping confirmed bookings are rejected.
+    const conflictingBooking = await Booking.findOne({
+      home: homeId,
+      status: "confirmed",
+      checkIn: { $lt: endDate },
+      checkOut: { $gt: startDate }
+    });
 
     if (conflictingBooking) {
-      return res.status(400).send(
-        "This home is already booked for the selected dates."
+      return redirectToBookingWithError(
+        res,
+        homeId,
+        "This home is already booked for the selected dates.",
+        formValues
       );
     }
-
 
     // --------------------------------------------------
     // CREATE BOOKING
     // --------------------------------------------------
 
     const booking = new Booking({
-
       home: homeId,
-
       user: req.session.user.id,
-
       checkIn: startDate,
-
       checkOut: endDate,
-
       guests: numberOfGuests,
+      nights,
 
-      nights: nights,
-
-      basePrice: basePrice,
-
-      extraGuestFee: extraGuestFee,
-
-      extraGuests: extraGuests,
-
-      baseAmount: baseAmount,
-
-      extraGuestAmount: extraGuestAmount,
-
-      totalPrice: totalPrice,
+      // Save a historical snapshot of the pricing.
+      // Store currency values rounded to paise so every saved component
+      // reconciles exactly with the saved total.
+      basePrice: fromPaise(basePricePaise),
+      includedGuests,
+      extraGuestFee: fromPaise(extraGuestFeePaise),
+      extraGuests,
+      baseAmount: fromPaise(baseAmountPaise),
+      extraGuestAmount: fromPaise(extraGuestAmountPaise),
+      totalPrice: fromPaise(totalPricePaise),
 
       status: "confirmed"
-
     });
-
 
     // --------------------------------------------------
     // SAVE BOOKING
@@ -358,121 +486,114 @@ exports.postBooking = async (req, res, next) => {
 
     await booking.save();
 
-
     // --------------------------------------------------
     // REDIRECT TO BOOKINGS
     // --------------------------------------------------
 
-    res.redirect("/bookings");
-
+    return res.redirect(`/booking-confirmation/${booking._id}`);
   } catch (error) {
-
     next(error);
-
   }
 };
 
+// ======================================================
+// BOOKING CONFIRMATION
+// ======================================================
+
+exports.getBookingConfirmation = async (req, res, next) => {
+  try {
+    if (!req.session?.user?.id) {
+      return res.redirect("/login");
+    }
+
+    const bookingId = req.params.bookingId;
+    if (!mongoose.isValidObjectId(bookingId)) {
+      return res.status(400).send("Invalid booking ID.");
+    }
+
+    // A guest may only view their own booking confirmation.
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      user: req.session.user.id
+    }).populate("home");
+
+    if (!booking) {
+      return res.status(404).send("Booking not found.");
+    }
+
+    return res.render("store/booking-confirmation", {
+      booking,
+      pageTitle: "Booking Confirmation",
+      currPage: "bookings",
+      isLoggedIn: req.session.isLoggedIn,
+      user: req.session.user || {}
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 // ======================================================
 // GET MY BOOKINGS
 // ======================================================
 
 exports.getBookings = async (req, res, next) => {
-
   try {
+    if (!req.session?.user?.id) {
+      return res.redirect("/login");
+    }
 
     const bookings = await Booking.find({
-
       user: req.session.user.id
-
     })
-
       .populate("home")
+      .sort({ createdAt: -1 });
 
-      .sort({
-        createdAt: -1
-      });
-
-
-    res.render("store/bookings", {
-
-      bookings: bookings,
-
+    return res.render("store/bookings", {
+      bookings,
       pageTitle: "My Bookings",
-
       currPage: "bookings",
-
       isLoggedIn: req.session.isLoggedIn,
-
       user: req.session.user || {}
-
     });
-
   } catch (error) {
-
     next(error);
-
   }
-
 };
-
 
 // ======================================================
 // CANCEL BOOKING
 // ======================================================
 
-exports.postCancelBooking = async (
-  req,
-  res,
-  next
-) => {
-
+exports.postCancelBooking = async (req, res, next) => {
   try {
-
-    const bookingId =
-      req.params.bookingId;
-
-
-    // Find only the booking belonging
-    // to the currently logged-in user
-
-    const booking =
-      await Booking.findOne({
-
-        _id: bookingId,
-
-        user: req.session.user.id,
-
-        status: "confirmed"
-
-      });
-
-
-    if (!booking) {
-
-      return res.status(404).send(
-        "Booking not found."
-      );
-
+    if (!req.session?.user?.id) {
+      return res.redirect("/login");
     }
 
+    const bookingId = req.params.bookingId;
 
-    // Change status
+    if (!mongoose.isValidObjectId(bookingId)) {
+      return res.status(400).send("Invalid booking ID.");
+    }
+
+    // Only find confirmed bookings owned by the logged-in user.
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      user: req.session.user.id,
+      status: "confirmed"
+    });
+
+    if (!booking) {
+      return res.status(404).send("Booking not found.");
+    }
 
     booking.status = "cancelled";
 
-
     await booking.save();
 
-
-    // Go back to bookings
-
-    res.redirect("/bookings");
-
+    return res.redirect("/bookings");
   } catch (error) {
-
     next(error);
-
   }
-
 };

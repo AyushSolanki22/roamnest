@@ -1,66 +1,26 @@
-<header class="bg-red-600 text-white shadow-md">
-  <nav class="container mx-auto flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-    <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-      <a
-        href="/"
-        class="rounded-lg px-3 py-2 text-lg font-bold text-white transition hover:bg-red-500 <%= currPage==='index' ? 'bg-red-500' : '' %>"
-      >
-        RoamNest
-      </a>
-
-      <% if (isLoggedIn) { %>
-        <% if(user && user.userType === 'guest') { %>
-        <a
-          href="/homes"
-          class="rounded-lg px-3 py-2 font-medium text-white transition hover:bg-red-500 <%= currPage==='Home' ? 'bg-red-500' : '' %>"
-        >
-          Homes-List
-        </a>
-
-        <a
-          href="/bookings"
-          class="rounded-lg px-3 py-2 font-medium text-white transition hover:bg-red-500 <%= currPage==='bookings' ? 'bg-red-500' : '' %>"
-        >
-          Bookings
-        </a>
-
-        <a
-          href="/favourites"
-          class="rounded-lg px-3 py-2 font-medium text-white transition hover:bg-red-500 <%= currPage==='favourites' ? 'bg-red-500' : '' %>"
-        >
-          Favourites
-        </a>
-      <% } %>
-      <% if(user && user.userType === 'host') { %>
-        <a
-          href="/host/host-homes"
-          class="rounded-lg px-3 py-2 font-medium text-white transition hover:bg-red-500 <%= currPage==='host-homes' ? 'bg-red-500' : '' %>"
-        >
-          Your Homes
-        </a>
-        <a
-          href="/host/add-home"
-          class="rounded-lg px-3 py-2 font-medium text-white transition hover:bg-red-500 <%= currPage==='addHome' ? 'bg-red-500' : '' %>"
-        >
-          Add Home
-        </a>
+<header class="rn-header">
+  <nav class="rn-nav" aria-label="Main navigation">
+    <div class="rn-nav-main">
+      <a href="/" class="rn-brand" aria-label="Roamnest home"><span class="rn-brand-mark">r.</span><span>roamnest</span></a>
+      <div class="rn-nav-links">
+        <a href="/homes" class="rn-nav-link <%= currPage === 'Home' ? 'is-active' : '' %>">Explore stays</a>
+        <% if (isLoggedIn && user && user.userType === 'guest') { %>
+          <a href="/bookings" class="rn-nav-link <%= currPage === 'bookings' ? 'is-active' : '' %>">My bookings</a>
+          <a href="/favourites" class="rn-nav-link <%= currPage === 'favourites' ? 'is-active' : '' %>">Favourites</a>
         <% } %>
-      <% } %>
+        <% if (isLoggedIn && user && user.userType === 'host') { %>
+          <a href="/host/host-homes" class="rn-nav-link <%= currPage === 'host-homes' ? 'is-active' : '' %>">Your homes</a>
+          <a href="/host/add-home" class="rn-nav-link <%= currPage === 'addHome' ? 'is-active' : '' %>">Add a stay</a>
+        <% } %>
+      </div>
     </div>
-    <div class="flex flex-wrap items-center gap-2">
+    <div class="rn-nav-account">
       <% if (isLoggedIn) { %>
-        <form action="/logout" method="POST">
-          <button type="submit" class="rounded-lg border border-red-300 px-4 py-2 font-semibold text-white transition hover:bg-red-500">
-            Logout
-          </button>
-        </form>
+        <span class="rn-account-greeting">Hello<%= user && user.firstName ? ', ' + user.firstName : '' %></span>
+        <form action="/logout" method="POST"><button type="submit" class="rn-button rn-button-outline">Log out</button></form>
       <% } else { %>
-        <a href="/signup" class="rounded-lg border border-red-300 px-4 py-2 font-semibold text-white transition hover:bg-red-500">
-          Signup
-        </a>
-        <a href="/login" class="rounded-lg bg-white px-4 py-2 font-semibold text-red-600 transition hover:bg-red-100">
-          Login
-        </a>
+        <a href="/login" class="rn-nav-link">Log in</a>
+        <a href="/signup" class="rn-button rn-button-primary rn-button-small">Join Roamnest</a>
       <% } %>
     </div>
   </nav>

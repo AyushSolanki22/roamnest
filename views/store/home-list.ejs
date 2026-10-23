@@ -1,61 +1,98 @@
 <%- include("../partials/head") %>
-</head>
-
-<body>
-
+<body class="rn-body">
   <%- include("../partials/header") %>
 
-  <main
-    class="container mx-auto bg-white shadow-lg rounded-lg p-8 mt-10 max-w-6xl px-6"
-  >
+  <main class="rn-page-shell">
+    <section class="rn-page-intro">
+      <p class="rn-eyebrow">A stay that feels like yours</p>
+      <h1>Find your next <span>getaway.</span></h1>
+      <p class="rn-intro-copy">Explore thoughtfully selected stays for slow mornings, weekend escapes, and everything in between.</p>
+    </section>
 
-    <h2
-      class="text-3xl text-red-500 font-bold text-center mb-6"
-    >
-      Here are our registered homes: 
-    </h2>
+    <section class="rn-search-panel" aria-label="Search and filter stays">
+      <form action="/homes" method="GET" class="rn-search-form">
+        <label class="rn-field rn-field-location">
+          <span>Destination or stay</span>
+          <input type="search" name="q" value="<%= searchState.q %>" maxlength="80" placeholder="Try Jaipur, mountain, beach..." />
+        </label>
+        <label class="rn-field">
+          <span>Min. price / night (₹)</span>
+          <input type="number" name="minPrice" min="0" max="10000000" step="1" value="<%= searchState.minPrice %>" placeholder="Any" />
+        </label>
+        <label class="rn-field">
+          <span>Max. price / night (₹)</span>
+          <input type="number" name="maxPrice" min="0" max="10000000" step="1" value="<%= searchState.maxPrice %>" placeholder="Any" />
+        </label>
+        <label class="rn-field">
+          <span>Guests</span>
+          <select name="guests">
+            <option value="">Any capacity</option>
+            <% for (let count = 1; count <= 16; count++) { %>
+              <option value="<%= count %>" <%= searchState.guests === String(count) ? 'selected' : '' %>><%= count %> <%= count === 1 ? 'guest' : 'guests' %></option>
+            <% } %>
+          </select>
+        </label>
+        <label class="rn-field rn-field-sort">
+          <span>Sort by</span>
+          <select name="sort">
+            <option value="recommended" <%= searchState.sort === 'recommended' ? 'selected' : '' %>>Recommended</option>
+            <option value="price-asc" <%= searchState.sort === 'price-asc' ? 'selected' : '' %>>Price: low to high</option>
+            <option value="price-desc" <%= searchState.sort === 'price-desc' ? 'selected' : '' %>>Price: high to low</option>
+            <option value="rating-desc" <%= searchState.sort === 'rating-desc' ? 'selected' : '' %>>Top rated</option>
+            <option value="newest" <%= searchState.sort === 'newest' ? 'selected' : '' %>>Recently added</option>
+          </select>
+        </label>
+        <div class="rn-search-actions">
+          <button class="rn-button rn-button-primary" type="submit">Search stays <span aria-hidden="true">→</span></button>
+          <a class="rn-clear-link" href="/homes">Clear filters</a>
+        </div>
+      </form>
+    </section>
 
-    <% if (registeredHomes.length === 0) { %>
-      <div class="text-center text-gray-600 mt-6">
-        No homes registered yet.
+    <section class="rn-results-section">
+      <div class="rn-results-heading">
+        <div>
+          <p class="rn-eyebrow"><%= hasSearch ? 'Your search results' : 'Explore the collection' %></p>
+          <h2><%= hasSearch ? 'Stays for your plans' : 'Places worth staying for' %></h2>
+        </div>
+        <p class="rn-result-count"><strong><%= resultCount %></strong> <%= resultCount === 1 ? 'stay' : 'stays' %></p>
       </div>
-    <% } else { %>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8"">
-        <% registeredHomes.forEach(home => { %>
-          <div class="border rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition bg-white">
-            <div class="h-64 overflow-hidden bg-gray-100">
-              <img
-                src="<%= home.photo %>"
-                alt="<%= home.name %>"
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div class="p-5">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-2xl font-semibold text-slate-900">
-                  <%= home.name %>
-                </h3>
-                <span class="inline-block bg-red-100 text-red-700 text-sm font-medium px-3 py-1 rounded-full">
-                  <%= home.rating %> ★
-                </span>
-              </div>
-              <p class="text-gray-600 mb-2">
-                <span class="font-medium">Location:</span> <%= home.location %>
-              </p>
-              <p class="text-1.5xl   text-gray-600 mb-4"><b>
-                <span class="font-medium"><b>Price:</b></span> <%= home.price %>/night</b>
-              </p>
-              <a class="bg-blue-300 p-2" href="/homes/<%= home._id %>" >Details</a>
-              <div class="mt-2">
-                    <%- include('../partials/favourite', {home:home}) %> 
+
+      <% if (registeredHomes.length === 0) { %>
+        <div class="rn-empty-state">
+          <div class="rn-empty-icon" aria-hidden="true">⌕</div>
+          <h3>No stays found just yet</h3>
+          <p>Try a different destination, widen your price range, or remove one of your filters.</p>
+          <a class="rn-button rn-button-secondary" href="/homes">View all stays</a>
+        </div>
+      <% } else { %>
+        <div class="rn-property-grid">
+          <% registeredHomes.forEach(home => { %>
+            <article class="rn-property-card">
+              <a class="rn-property-image-link" href="/homes/<%= home._id %>" aria-label="View <%= home.name %>">
+                <img src="<%= home.photo %>" alt="<%= home.name %>" class="rn-property-image" loading="lazy" />
+                <span class="rn-image-tag">Roamnest stay</span>
+              </a>
+              <div class="rn-property-content">
+                <div class="rn-property-title-row">
+                  <div>
+                    <p class="rn-property-location"><span aria-hidden="true">⌖</span> <%= home.location %></p>
+                    <h3><a href="/homes/<%= home._id %>"><%= home.name %></a></h3>
                   </div>
-            </div>
-          </div>
-        <% }) %>
-      </div>
-    <% } %>
-
+                  <span class="rn-rating" aria-label="Rating <%= home.rating %> out of 5">★ <%= Number(home.rating).toFixed(1) %></span>
+                </div>
+                <div class="rn-property-meta"><span>Up to <%= home.maxGuests %> guests</span><span>·</span><span>Comfort-led stays</span></div>
+                <div class="rn-property-footer">
+                  <p class="rn-price"><strong>₹<%= Number(home.price).toLocaleString('en-IN') %></strong><span> / night</span></p>
+                  <a class="rn-details-link" href="/homes/<%= home._id %>">View stay <span aria-hidden="true">↗</span></a>
+                </div>
+                <div class="rn-favourite-wrap"><%- include('../partials/favourite', {home: home}) %></div>
+              </div>
+            </article>
+          <% }) %>
+        </div>
+      <% } %>
+    </section>
   </main>
-
 </body>
 </html>

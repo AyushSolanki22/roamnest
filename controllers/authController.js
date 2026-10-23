@@ -33,68 +33,117 @@ exports.getSignup = (req, res, next) => {
   });
 };
 
+
 exports.postLogin = async (req, res, next) => {
-  const email = req.body.email.trim().toLowerCase();
-  const { password } = req.body;
+  try {
+    const rawEmail = req.body?.email;
+    const password = req.body?.password;
 
-  const user = await User.findOne({ email });
+    if (
+      typeof rawEmail !== "string" ||
+      typeof password !== "string" ||
+      !rawEmail.trim() ||
+      !password
+    ) {
+      return res.status(422).render("auth/login", {
+        pageTitle: "Login",
+        currPage: "login",
+        isLoggedIn: false,
+        errorMessages: ["Please enter a valid email and password."],
+        oldInput: {
+          email: typeof rawEmail === "string" ? rawEmail.trim() : "",
+        },
+        user: {},
+      });
+    }
 
-  if (!user) {
-    return res.status(422).render("auth/login", {
-      pageTitle: "Login",
-      currPage: "login",
-      isLoggedIn: false,
-      errorMessages: ["User not found. Please check your email and try again."],
-      oldInput: { email },
-      user: {},
-    });
-  }
+    const email = rawEmail.trim().toLowerCase();
+    const user = await User.findOne({ email });
 
-  const isMatch = bcrypt.compareSync(password, user.password);
+    if (!user) {
+      return res.status(422).render("auth/login", {
+        pageTitle: "Login",
+        currPage: "login",
+        isLoggedIn: false,
+        errorMessages: [
+          "Invalid email or password. Please try again.",
+        ],
+        oldInput: { email },
+        user: {},
+      });
+    }
 
-  if (!isMatch) {
-    return res.status(422).render("auth/login", {
-      pageTitle: "Login",
-      currPage: "login",
-      isLoggedIn: false,
-      errorMessages: ["Incorrect password. Please try again."],
-      oldInput: { email },
-      user: {},
-    });
-  }
+    const isMatch = await bcrypt.compare(password, user.password);
 
-  req.session.isLoggedIn = true;
+    if (!isMatch) {
+      return res.status(422).render("auth/login", {
+        pageTitle: "Login",
+        currPage: "login",
+        isLoggedIn: false,
+        errorMessages: [
+          "Invalid email or password. Please try again.",
+        ],
+        oldInput: { email },
+        user: {},
+      });
+    }
 
-  req.session.user = {
-    id: user._id.toString(),
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    userType: user.userType,
-  };
-
-  await req.session.save();
-
-  Home.find().then((registeredHomes) => {
-      res.render("store/index", {
-        registeredHomes: registeredHomes,
-        pageTitle: "Homes",
-        currPage: "Home",
-        isLoggedIn: req.session.isLoggedIn,
-        user: req.session.user || {},
+    // Regenerate the session after authentication to reduce session fixation risk.
+    await new Promise((resolve, reject) => {
+      req.session.regenerate((error) => {
+        if (error) return reject(error);
+        resolve();
       });
     });
-  // res.cookie("req.session.isLoggedIn", true);
-  // req.session.req.session.isLoggedIn = true;
+
+    req.session.isLoggedIn = true;
+    req.session.user = {
+      id: user._id.toString(),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      userType: user.userType,
+    };
+
+    await new Promise((resolve, reject) => {
+      req.session.save((error) => {
+        if (error) return reject(error);
+        resolve();
+      });
+    });
+
+    const registeredHomes = await Home.find();
+
+    return res.render("store/index", {
+      registeredHomes,
+      pageTitle: "Homes",
+      currPage: "Home",
+      isLoggedIn: true,
+      user: req.session.user,
+    });
+  } catch (error) {
+    return next(error);
+  }
 };
 
+
+
 exports.postLogout = (req, res, next) => {
-  // res.clearCookie("req.session.isLoggedIn");
-  req.session.destroy((err) => {
-    console.log(err);
-    res.redirect("/login");
+  if (!req.session) {
+    return res.redirect("/login");
+  }
+
+  req.session.destroy((error) => {
+    if (error) {
+      return next(error);
+    }
+
+    res.clearCookie("connect.sid");
+    return res.redirect("/login");
   });
 };
+
+
 
 exports.postSignup = [
   check("firstName")
@@ -123,7 +172,6 @@ exports.postSignup = [
     .not()
     .isEmpty()
     .withMessage("Password is required")
-    .trim()
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters long")
     .matches(/[A-Z]/)
@@ -139,7 +187,6 @@ exports.postSignup = [
     .not()
     .isEmpty()
     .withMessage("Confirm password is required")
-    .trim()
     .custom((value, { req }) => {
       if (value !== req.body.password) {
         throw new Error("Passwords do not match");
@@ -165,8 +212,14 @@ exports.postSignup = [
       return true;
     }),
 
-  (req, res, next) => {
-    const { firstName, lastName, email, password, userType } = req.body;
+  async (req, res, next) => {
+    const {
+  firstName,
+  lastName,
+  email,
+  password,
+  userType,
+} = req.body || {};
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -175,35 +228,51 @@ exports.postSignup = [
         currPage: "signup",
         isLoggedIn: false,
         errorMessages: errors.array().map((error) => error.msg),
-        oldInput: { firstName, lastName, email, password, userType },
+        oldInput: { firstName, lastName, email, userType },
         user: {},
       });
     }
 
-    bcrypt.hash(password, 12).then((hashedPassword) => {
+    try {
+      const normalizedEmail = email.trim().toLowerCase();
+      const hashedPassword = await bcrypt.hash(password, 12);
+
       const user = new User({
-        firstName,
-        lastName,
-        email,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: normalizedEmail,
         password: hashedPassword,
         userType,
       });
-      return user
-        .save()
-        .then((result) => {
-          console.log("User created:", result);
-          res.redirect("/login");
-        })
-        .catch((err) => {
-          return res.status(422).render("auth/signup", {
-            pageTitle: "Signup",
-            currPage: "signup",
-            isLoggedIn: false,
-            errorMessages: [err.message],
-            oldInput: { firstName, lastName, email, password, userType },
-            user: {},
-          });
+
+      await user.save();
+
+      return res.redirect("/login");
+    } catch (error) {
+      // Handle duplicate email without exposing internal database details.
+      if (error.code === 11000) {
+        return res.status(422).render("auth/signup", {
+          pageTitle: "Signup",
+          currPage: "signup",
+          isLoggedIn: false,
+          errorMessages: ["An account with this email already exists."],
+          oldInput: { firstName, lastName, email, userType },
+          user: {},
         });
-    });
+      }
+
+      if (error.name === "ValidationError") {
+        return res.status(422).render("auth/signup", {
+          pageTitle: "Signup",
+          currPage: "signup",
+          isLoggedIn: false,
+          errorMessages: [error.message],
+          oldInput: { firstName, lastName, email, userType },
+          user: {},
+        });
+      }
+
+      return next(error);
+    }
   },
 ];

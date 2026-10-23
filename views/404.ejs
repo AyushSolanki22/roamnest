@@ -1,33 +1,43 @@
-<%- include('partials/head') %>
+ <%- include('partials/head') %>
 </head>
 
-<body class="bg-gray-100">
+<body class="min-h-screen bg-[#f8f5f0] text-gray-900">
 
   <%- include('partials/header') %>
 
-  <!-- 404 Card -->
-  <div class="flex justify-center mt-16">
+  <main class="flex min-h-[75vh] items-center justify-center px-4 py-12">
+    <section class="w-full max-w-xl rounded-2xl border border-[#e9dfd3] bg-white px-6 py-12 text-center shadow-[0_12px_40px_rgba(80,60,40,0.08)] sm:px-12">
 
-    <div class="bg-white shadow-lg rounded-lg w-[600px] p-10 text-center">
+      <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-[#f3ebe3] text-3xl font-bold text-[#806047]">
+        r.
+      </div>
 
-      <h1 class="text-6xl font-bold text-red-500 mb-4">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-[0.25em] text-[#806047]">
+        Lost your way?
+      </p>
+
+      <h1 class="mb-3 text-7xl font-extrabold tracking-tight text-[#806047] sm:text-8xl">
         404
       </h1>
 
-      <p class="text-xl text-gray-600 mb-8">
-        Oops! Page Not Found
+      <h2 class="mb-3 text-2xl font-semibold text-gray-900">
+        Oops! Page not found
+      </h2>
+
+      <p class="mx-auto mb-8 max-w-sm text-base leading-7 text-gray-500">
+        Looks like this page has checked out. Let's get you back to discovering your next stay.
       </p>
 
       <a
         href="/"
-        class="inline-block bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md font-medium"
+        class="inline-flex items-center justify-center rounded-full bg-[#806047] px-7 py-3 font-semibold text-white transition duration-200 hover:bg-[#684b35] focus:outline-none focus:ring-2 focus:ring-[#806047] focus:ring-offset-2"
       >
-        Go Back Home
+        Go back home
+        <span class="ml-2" aria-hidden="true">&rarr;</span>
       </a>
 
-    </div>
-
-  </div>
+    </section>
+  </main>
 
 </body>
 </html>

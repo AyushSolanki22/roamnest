@@ -1,58 +1,42 @@
 <%- include("../partials/head") %>
-</head>
-
-<body>
-
+<body class="rn-body">
   <%- include("../partials/header") %>
-
-  <main
-    class="container mx-auto bg-white shadow-lg rounded-lg p-8 mt-10 max-w-6xl px-6"
-  >
-
-    <h2
-      class="text-3xl text-red-500 font-bold text-center mb-6"
-    >
-      Welcome to RoamNest index page: 
-    </h2>
-
-    <% if (registeredHomes.length === 0) { %>
-      <div class="text-center text-gray-600 mt-6">
-        No homes registered yet.
+  <main class="rn-page-shell rn-homepage">
+    <section class="rn-hero">
+      <div class="rn-hero-content">
+        <p class="rn-eyebrow">Make room for a little wonder</p>
+        <h1>Stay somewhere<br /><span>that stays with you.</span></h1>
+        <p>Discover thoughtful stays for spontaneous weekends, meaningful moments, and slower ways to travel.</p>
+        <a class="rn-button rn-button-primary" href="/homes">Explore all stays <span aria-hidden="true">→</span></a>
       </div>
-    <% } else { %>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8"">
-        <% registeredHomes.forEach(home => { %>
-          <div class="border rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition bg-white">
-            <div class="h-64 overflow-hidden bg-gray-100">
-              <img
-                src="<%= home.photo %>"
-                alt="<%= home.name %>"
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div class="p-5">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-2xl font-semibold text-slate-900">
-                  <%= home.name %>
-                </h3>
-                <span class="inline-block bg-red-100 text-red-700 text-sm font-medium px-3 py-1 rounded-full">
-                  <%= home.rating %> ★
-                </span>
+      <div class="rn-hero-art" role="img" aria-label="Warm, inviting travel-inspired landscape illustration">
+        <div class="rn-art-sun"></div><div class="rn-art-hill rn-art-hill-back"></div><div class="rn-art-hill rn-art-hill-front"></div><div class="rn-art-house"><span></span></div>
+        <p>Find your own kind of getaway.</p>
+      </div>
+    </section>
+
+    <section class="rn-results-section rn-featured-section">
+      <div class="rn-results-heading">
+        <div><p class="rn-eyebrow">A few places to begin</p><h2>Stays to fall for</h2></div>
+        <a class="rn-details-link" href="/homes">Explore all stays <span aria-hidden="true">→</span></a>
+      </div>
+      <% if (registeredHomes.length === 0) { %>
+        <div class="rn-empty-state"><h3>Your next stay starts here</h3><p>New properties will appear here as hosts add their listings.</p><a class="rn-button rn-button-secondary" href="/homes">Explore stays</a></div>
+      <% } else { %>
+        <div class="rn-property-grid">
+          <% registeredHomes.slice(0, 3).forEach(home => { %>
+            <article class="rn-property-card">
+              <a class="rn-property-image-link" href="/homes/<%= home._id %>" aria-label="View <%= home.name %>"><img src="<%= home.photo %>" alt="<%= home.name %>" class="rn-property-image" loading="lazy" /><span class="rn-image-tag">Featured stay</span></a>
+              <div class="rn-property-content">
+                <div class="rn-property-title-row"><div><p class="rn-property-location">⌖ <%= home.location %></p><h3><a href="/homes/<%= home._id %>"><%= home.name %></a></h3></div><span class="rn-rating">★ <%= Number(home.rating).toFixed(1) %></span></div>
+                <div class="rn-property-meta"><span>Up to <%= home.maxGuests %> guests</span></div>
+                <div class="rn-property-footer"><p class="rn-price"><strong>₹<%= Number(home.price).toLocaleString('en-IN') %></strong><span> / night</span></p><a class="rn-details-link" href="/homes/<%= home._id %>">View stay ↗</a></div>
               </div>
-              <p class="text-gray-600 mb-2">
-                <span class="font-medium">Location:</span> <%= home.location %>
-              </p>
-              <p class="text-1.5xl   text-gray-600 mb-4"><b>
-                <span class="font-medium"><b>Price:</b></span> <%= home.price %>/night</b>
-              </p>
-              <button class="bg-green-300 p-2">Book</button>
-            </div>
-          </div>
-        <% }) %>
-      </div>
-    <% } %>
-
+            </article>
+          <% }) %>
+        </div>
+      <% } %>
+    </section>
   </main>
-
 </body>
 </html>

@@ -170,6 +170,36 @@ Examples include:
 
 ---
 
+## ✨ Phase 2 — Discovery and design improvements
+
+The property discovery page now supports:
+
+- Search by property name or location (case-insensitive, literal matching).
+- Minimum and maximum nightly price filters.
+- Minimum guest-capacity filtering.
+- Sorting by recommended (rating), price ascending, price descending, rating, or most recently added (MongoDB ID order).
+- Combined filters with query parameters preserved in the form.
+- A clear-filters action, result count, and helpful no-results state.
+- A responsive, warm-neutral visual system with premium property cards, accessible form labels, mobile layouts, and reduced-motion support.
+
+Search is implemented using the existing `Home` model and `/homes` route. No new model or database migration is required. The current schema does not contain an amenities field, so amenities filtering is intentionally not presented as a supported filter.
+
+### Search URL example
+
+```text
+/homes?q=Goa&minPrice=2000&maxPrice=8000&guests=4&sort=price-asc
+```
+
+## 🚀 Local setup
+
+1. Install a supported Node.js version and MongoDB Atlas/local MongoDB access.
+2. Run `npm install`.
+3. Copy `.env.example` to `.env` and set real values locally. Never commit `.env`.
+4. Start the app with `npm start` (or `npm run dev` during development).
+5. For Tailwind changes, run `npm run tailwind:build`; the new Roamnest design layer is in `public/roamnest.css`.
+
+Before deployment, configure `MONGODB_URI`, a strong `SESSION_SECRET`, and Cloudinary credentials in the hosting provider's environment settings. Verify uploaded assets use durable Cloudinary URLs rather than depending on Render's local filesystem.
+
 ## 🧰 Tech Stack
 
 ### Backend

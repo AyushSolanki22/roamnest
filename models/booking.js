@@ -149,6 +149,47 @@ const bookingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+
+bookingSchema.pre("validate", function (next) {
+  const values = [
+    this.basePrice,
+    this.extraGuestFee,
+    this.baseAmount,
+    this.extraGuestAmount,
+    this.totalPrice,
+  ];
+
+  if (!values.every(Number.isFinite)) {
+    return next(new Error("Booking pricing values must be finite numbers."));
+  }
+
+  // Compare amounts in integer paise to avoid floating-point discrepancies.
+  const toPaise = (amount) => Math.round((amount + Number.EPSILON) * 100);
+
+  const expectedBaseAmount = toPaise(this.basePrice) * this.nights;
+  const expectedExtraAmount =
+    toPaise(this.extraGuestFee) * this.extraGuests * this.nights;
+
+  if (
+    !Number.isSafeInteger(expectedBaseAmount) ||
+    !Number.isSafeInteger(expectedExtraAmount) ||
+    !Number.isSafeInteger(expectedBaseAmount + expectedExtraAmount)
+  ) {
+    return next(new Error("Booking pricing exceeds supported limits."));
+  }
+
+  if (
+    toPaise(this.baseAmount) !== expectedBaseAmount ||
+    toPaise(this.extraGuestAmount) !== expectedExtraAmount ||
+    toPaise(this.totalPrice) !== expectedBaseAmount + expectedExtraAmount
+  ) {
+    return next(new Error("Booking pricing breakdown does not match the total."));
+  }
+
+  next();
+});
+
+
 // Helpful compound index for finding overlapping confirmed bookings.
 // This helps query performance but does not, by itself, prevent race conditions.
 bookingSchema.index({

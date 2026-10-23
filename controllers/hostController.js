@@ -1,4 +1,5 @@
 const Home = require("../models/home");
+const mongoose = require("mongoose");
 
 const {
   cloudinary,
@@ -29,11 +30,18 @@ const deleteCloudinaryAsset = async (publicId) => {
 // --------------------------------------------------
 
 const getOwnedHome = async (homeId, userId) => {
+  if (
+    !mongoose.isValidObjectId(homeId) ||
+    !mongoose.isValidObjectId(userId)
+  ) {
+    return null;
+  }
+
   return Home.findOne({
     _id: homeId,
-    host: userId
+    host: userId,
   });
-}
+};
 
 
 // --------------------------------------------------
@@ -158,15 +166,16 @@ exports.postAddHome = async (req, res, next) => {
     res.redirect("/host/host-homes");
   } catch (error) {
     // Remove newly uploaded Cloudinary assets if saving fails
-    for (const asset of uploadedAssets) {
-      try {
-        await cloudinary.uploader.destroy(asset.publicId, {
-          resource_type: asset.resourceType,
-        });
-      } catch (cleanupError) {
-        console.error("Cloudinary cleanup failed:", cleanupError);
-      }
-    }
+    // Remove newly uploaded Cloudinary assets if saving fails
+// Remove newly uploaded Cloudinary assets if saving fails.
+for (const asset of uploadedAssets) {
+  try {
+    await deleteCloudinaryAsset(asset.publicId);
+  } catch (cleanupError) {
+    console.error("Cloudinary cleanup failed:", cleanupError);
+
+}
+}
 
     next(error);
   }

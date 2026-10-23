@@ -1,60 +1,131 @@
+
 <%- include("../partials/head") %>
 </head>
 
-<body>
-
+<body class="rn-body">
   <%- include("../partials/header") %>
 
-  <main
-    class="container mx-auto bg-white shadow-lg rounded-lg p-8 mt-10 max-w-6xl px-6"
-  >
+  <main class="rn-page-shell rn-favourites-page">
+    <section class="rn-page-intro rn-favourites-intro">
+      <p class="rn-eyebrow">Your personal collection</p>
+      <h1>Your <span>favourites.</span></h1>
+      <p class="rn-intro-copy">
+        The stays you've saved for your next getaway, all in one place.
+      </p>
+    </section>
 
-    <h2
-      class="text-3xl text-red-500 font-bold text-center mb-6"
-    >
-      Here are your favourites: 
-    </h2>
+    <section class="rn-results-section">
+      <div class="rn-results-heading">
+        <div>
+          <p class="rn-eyebrow">Saved stays</p>
+          <h2>Places you've fallen for</h2>
+        </div>
 
-    <% if (favouriteHomes.length === 0) { %>
-      <div class="text-center text-gray-600 mt-6">
-        No homes registered yet.
+        <p class="rn-result-count">
+          <strong><%= favouriteHomes.length %></strong>
+          <%= favouriteHomes.length === 1 ? "stay" : "stays" %>
+        </p>
       </div>
-    <% } else { %>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8"">
-        <% favouriteHomes.forEach(home => { %>
-          <div class="border rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition bg-white">
-            <div class="h-64 overflow-hidden bg-gray-100">
-              <img
-                src="<%= home.photo %>"
-                alt="<%= home.name %>"
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div class="p-5">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-2xl font-semibold text-slate-900">
-                  <%= home.name %>
-                </h3>
-                <span class="inline-block bg-red-100 text-red-700 text-sm font-medium px-3 py-1 rounded-full">
-                  <%= home.rating %> ★
-                </span>
+
+      <% if (favouriteHomes.length === 0) { %>
+        <div class="rn-empty-state rn-favourites-empty">
+          <div class="rn-empty-icon" aria-hidden="true">♡</div>
+
+          <h3>Your collection starts here</h3>
+
+          <p>
+            You haven't saved any stays yet. Explore Roamnest and keep the
+            places you love close at hand.
+          </p>
+
+          <a href="/homes" class="rn-button rn-button-primary">
+            Explore stays <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      <% } else { %>
+        <div class="rn-property-grid rn-favourites-grid">
+          <% favouriteHomes.forEach(home => { %>
+            <article class="rn-property-card rn-favourite-card">
+              <a
+                href="/homes/<%= home._id %>"
+                class="rn-property-image-link"
+                aria-label="View <%= home.name %>"
+              >
+                <img
+                  src="<%= home.photo %>"
+                  alt="<%= home.name %>"
+                  class="rn-property-image"
+                  loading="lazy"
+                />
+
+                <span class="rn-image-tag">Saved stay</span>
+              </a>
+
+              <div class="rn-property-content">
+                <div class="rn-property-title-row">
+                  <div>
+                    <p class="rn-property-location">
+                      <span aria-hidden="true">⌖</span>
+                      <%= home.location %>
+                    </p>
+
+                    <h3>
+                      <a href="/homes/<%= home._id %>">
+                        <%= home.name %>
+                      </a>
+                    </h3>
+                  </div>
+
+                  <span
+                    class="rn-rating"
+                    aria-label="Rating <%= home.rating %> out of 5"
+                  >
+                    ★ <%= Number(home.rating).toFixed(1) %>
+                  </span>
+                </div>
+
+                <div class="rn-property-meta">
+                  <span>Up to <%= home.maxGuests %> guests</span>
+                  <span>·</span>
+                  <span>Comfort-led stays</span>
+                </div>
+
+                <div class="rn-property-footer">
+                  <p class="rn-price">
+                    <strong>
+                      ₹<%= Number(home.price).toLocaleString("en-IN") %>
+                    </strong>
+                    <span>/ night</span>
+                  </p>
+
+                  <a
+                    href="/homes/<%= home._id %>"
+                    class="rn-details-link"
+                  >
+                    View stay <span aria-hidden="true">↗</span>
+                  </a>
+                </div>
+
+                <form
+                  action="/delete-favourite/<%= home._id %>"
+                  method="POST"
+                  class="rn-remove-favourite-form"
+                >
+                  <button
+                    type="submit"
+                    class="rn-button rn-remove-favourite-button"
+                    aria-label="Remove <%= home.name %> from favourites"
+                  >
+                    <span aria-hidden="true">♥</span>
+                    <span>Remove from Favourites</span>
+                  </button>
+                </form>
               </div>
-              <p class="text-gray-600 mb-2">
-                <span class="font-medium">Location:</span> <%= home.location %>
-              </p>
-              <p class="text-1.5xl   text-gray-600 mb-4"><b>
-                <span class="font-medium"><b>Price:</b></span> <%= home.price %>/night</b>
-              </p>
-              <form action="/delete-favourite/<%= home._id %>" method="POST">
-                <button class="bg-red-500 p-2">Remove from favourites</button>
-              </form>
-            </div>
-          </div>
-        <% }) %>
-      </div>
-    <% } %>
-
+            </article>
+          <% }) %>
+        </div>
+      <% } %>
+    </section>
   </main>
-
 </body>
 </html>

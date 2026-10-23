@@ -1,6 +1,13 @@
-<form action="/favourites" method="POST">
-  <button type="submit" class="bg-green-300 p-2 hover:bg-green-500">
-    Add to Favourites
-  </button>
+
+<form action="/favourites" method="POST" class="rn-favourite-form">
   <input type="hidden" name="id" value="<%= home._id %>" />
+
+  <button
+    type="submit"
+    class="rn-button rn-favourite-button"
+    aria-label="Add <%= home.name %> to favourites"
+  >
+    <span class="rn-favourite-heart" aria-hidden="true">♡</span>
+    <span>Add to Favourites</span>
+  </button>
 </form>

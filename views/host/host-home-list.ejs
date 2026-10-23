@@ -1,62 +1,125 @@
+
 <%- include("../partials/head") %>
 </head>
 
-<body>
-
+<body class="rn-body">
   <%- include("../partials/header") %>
 
-  <main
-    class="container mx-auto bg-white shadow-lg rounded-lg p-8 mt-10 max-w-6xl px-6"
-  >
+  <main class="rn-page-shell rn-host-homes">
+    <header class="rn-page-intro rn-host-intro">
+      <p class="rn-eyebrow">Your hosting space</p>
+      <h1>Hey Host! <span>Your homes.</span></h1>
+      <p class="rn-intro-copy">
+        Keep your stays looking their best and manage your listings in one place.
+      </p>
+    </header>
 
-    <h2
-      class="text-3xl text-red-500 font-bold text-center mb-6"
-    >
-      Hey Host! Here are your homes: 
-    </h2>
+    <div class="rn-host-toolbar">
+      <div>
+        <p class="rn-eyebrow">Property management</p>
+        <h2>
+          Your listings
+          <span class="rn-host-count"><%= registeredHomes.length %></span>
+        </h2>
+      </div>
+
+      <a href="/host/add-home" class="rn-button rn-button-primary">
+        <span aria-hidden="true">＋</span>
+        Add a stay
+      </a>
+    </div>
 
     <% if (registeredHomes.length === 0) { %>
-      <div class="text-center text-gray-600 mt-6">
-        No homes registered yet.
-      </div>
+      <section class="rn-empty-state rn-host-empty">
+        <div class="rn-empty-icon" aria-hidden="true">⌂</div>
+
+        <h3>Your hosting journey starts here</h3>
+
+        <p>
+          You haven’t listed a stay yet. Add your first property and help
+          guests find their next getaway.
+        </p>
+
+        <a href="/host/add-home" class="rn-button rn-button-primary">
+          Add your first stay
+        </a>
+      </section>
     <% } else { %>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8"">
+      <section
+        class="rn-host-property-grid"
+        aria-label="Your listed properties"
+      >
         <% registeredHomes.forEach(home => { %>
-          <div class="border rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition bg-white">
-            <div class="h-64 overflow-hidden bg-gray-100">
+          <article class="rn-property-card rn-host-property-card">
+            <div class="rn-host-image-wrap">
               <img
                 src="<%= home.photo %>"
                 alt="<%= home.name %>"
-                class="w-full h-full object-cover"
+                class="rn-property-image"
+                loading="lazy"
               />
+
+              <span class="rn-image-tag">Your listing</span>
             </div>
-            <div class="p-5">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-2xl font-semibold text-slate-900">
-                  <%= home.name %>
-                </h3>
-                <span class="inline-block bg-red-100 text-red-700 text-sm font-medium px-3 py-1 rounded-full">
-                  <%= home.rating %> ★
+
+            <div class="rn-property-content rn-host-property-content">
+              <div class="rn-property-title-row">
+                <div class="rn-host-title-group">
+                  <h3><%= home.name %></h3>
+
+                  <p class="rn-property-location">
+                    <span>Location</span> · <%= home.location %>
+                  </p>
+                </div>
+
+                <span
+                  class="rn-rating"
+                  aria-label="Rating <%= home.rating %> out of 5"
+                >
+                  <span aria-hidden="true">★</span>
+                  <%= home.rating %>
                 </span>
               </div>
-              <p class="text-gray-600 mb-2">
-                <span class="font-medium">Location:</span> <%= home.location %>
-              </p>
-              <p class="text-1.5xl   text-gray-600 mb-4"><b>
-                <span class="font-medium"><b>Price:</b></span> <%= home.price %>/night</b>
-              </p>
-              <a href="/host/edit-home/<%=home._id%>?editing=true" class="bg-blue-500   p-2">Edit</a>
-              <form action="/host/delete-home/<%= home._id %>" method="post">
-                <button class="bg-red-500 p-2">Delete</button>
-              </form>
 
+              <div class="rn-host-price-row">
+                <p class="rn-price">
+                  <strong>
+                    ₹<%= Number(home.price).toLocaleString('en-IN') %>
+                  </strong>
+                  <span>/ night</span>
+                </p>
+
+                <span class="rn-host-price-note">
+                  Per stay, per night
+                </span>
+              </div>
+
+              <div class="rn-host-card-actions">
+                <a
+                  href="/host/edit-home/<%= home._id %>?editing=true"
+                  class="rn-button rn-button-primary rn-button-small"
+                >
+                  Edit listing
+                </a>
+
+                <form
+                  action="/host/delete-home/<%= home._id %>"
+                  method="post"
+                  onsubmit="return confirm('Are you sure you want to delete this listing? This action cannot be undone.');"
+                >
+                  <button
+                    type="submit"
+                    class="rn-button rn-button-danger rn-button-small"
+                  >
+                    Delete
+                  </button>
+                </form>
+              </div>
             </div>
-          </div>
+          </article>
         <% }) %>
-      </div>
+      </section>
     <% } %>
-
   </main>
-
 </body>
 </html>

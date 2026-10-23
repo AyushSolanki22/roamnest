@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 const rootDir = require("./utils/path");
 
 const storeRouter = require("./routes/storeRouter");
-const { hostRouter } = require("./routes/hostRouter");
+const hostRouter = require("./routes/hostRouter");
 const bookingRouter = require("./routes/bookingRouter");
 const authRouter = require("./routes/authRouter");
 
@@ -48,7 +48,7 @@ const store = new MongoDBStore({
 });
 
 store.on("error", (error) => {
-  console.error("MongoDB session store error:", error);
+  console.error("MongoDB session store error:", error.message);
 });
 
 // Static files and request parsing
@@ -82,26 +82,24 @@ app.use(authRouter);
 app.use(storeRouter);
 app.use(bookingRouter);
 
-// Protect host routes using the existing authentication middleware.
+// Host routes.
+// hostRouter also enforces login and host-role authorization internally.
 app.use("/host", requireLogin);
 app.use("/host", hostRouter);
 
-// Application-level error handling
+// 404 fallback: reached when no earlier route handles the request.
 app.use(errorController.error);
 
-// Final fallback error handler
+// Error-handling middleware for unexpected errors.
+// Keep this after all routes and the 404 fallback.
 app.use((err, req, res, next) => {
-  console.error("=================================");
-  console.error("ERROR:", err);
-  console.error("MESSAGE:", err.message);
-  console.error("STACK:", err.stack);
-  console.error("=================================");
+  console.error("Server error:", err.message);
 
   if (res.headersSent) {
     return next(err);
   }
 
-  res.status(500).send("Something went wrong.");
+  return res.status(500).send("Something went wrong.");
 });
 
 // Connect to MongoDB before starting the server.
@@ -113,6 +111,6 @@ mongoose
     });
   })
   .catch((error) => {
-    console.error("Error while connecting to MongoDB:", error);
+    console.error("Error while connecting to MongoDB:", error.message);
     process.exitCode = 1;
   });

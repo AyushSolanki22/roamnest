@@ -2,9 +2,15 @@ const mongoose = require("mongoose");
 
 // _id is automatically added by mongoose
 const userSchema = mongoose.Schema({
-  firstName: { type: String, required: true },
-  lastName: { type: String },
-  email: { type: String, required: true, unique: true },
+  firstName: { type: String, required: true, trim: true },
+  lastName: { type: String, trim: true },
+  email: {
+  type: String,
+  required: true,
+  trim: true,
+  lowercase: true,
+  unique: true,
+},
   password: { type: String, required: true },
   userType: {
     type: String,

@@ -150,7 +150,8 @@ const bookingSchema = new mongoose.Schema(
 );
 
 
-bookingSchema.pre("validate", function (next) {
+
+bookingSchema.pre("validate", function () {
   const values = [
     this.basePrice,
     this.extraGuestFee,
@@ -160,13 +161,15 @@ bookingSchema.pre("validate", function (next) {
   ];
 
   if (!values.every(Number.isFinite)) {
-    return next(new Error("Booking pricing values must be finite numbers."));
+    throw new Error("Booking pricing values must be finite numbers.");
   }
 
   // Compare amounts in integer paise to avoid floating-point discrepancies.
-  const toPaise = (amount) => Math.round((amount + Number.EPSILON) * 100);
+  const toPaise = (amount) =>
+    Math.round((amount + Number.EPSILON) * 100);
 
   const expectedBaseAmount = toPaise(this.basePrice) * this.nights;
+
   const expectedExtraAmount =
     toPaise(this.extraGuestFee) * this.extraGuests * this.nights;
 
@@ -175,7 +178,7 @@ bookingSchema.pre("validate", function (next) {
     !Number.isSafeInteger(expectedExtraAmount) ||
     !Number.isSafeInteger(expectedBaseAmount + expectedExtraAmount)
   ) {
-    return next(new Error("Booking pricing exceeds supported limits."));
+    throw new Error("Booking pricing exceeds supported limits.");
   }
 
   if (
@@ -183,11 +186,12 @@ bookingSchema.pre("validate", function (next) {
     toPaise(this.extraGuestAmount) !== expectedExtraAmount ||
     toPaise(this.totalPrice) !== expectedBaseAmount + expectedExtraAmount
   ) {
-    return next(new Error("Booking pricing breakdown does not match the total."));
+    throw new Error(
+      "Booking pricing breakdown does not match the total."
+    );
   }
-
-  next();
 });
+
 
 
 // Helpful compound index for finding overlapping confirmed bookings.

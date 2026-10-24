@@ -1,94 +1,118 @@
-
 <%- include('../partials/head') %>
 
+
 <style>
-    * { box-sizing: border-box; }
+    * {
+        box-sizing: border-box;
+    }
+
+    :root {
+        --rn-cream: #f8f6f2;
+        --rn-surface: #ffffff;
+        --rn-brown: #806247;
+        --rn-brown-dark: #634a35;
+        --rn-brown-light: #f2e9df;
+        --rn-border: #e8e0d7;
+        --rn-text: #29251f;
+        --rn-muted: #81776c;
+        --rn-green-bg: #e8f4e9;
+        --rn-green-text: #367348;
+        --rn-red-bg: #f8e8e4;
+        --rn-red-text: #a4493d;
+        --rn-shadow: 0 12px 34px rgba(65, 48, 31, 0.07);
+    }
 
     body {
         margin: 0;
-        background: #f7f8fc;
-        color: #1f2937;
-        font-family: Arial, Helvetica, sans-serif;
+        background: var(--rn-cream);
+        color: var(--rn-text);
+        font-family: inherit;
+        -webkit-font-smoothing: antialiased;
     }
 
     .bookings-page {
-        max-width: 1150px;
+        max-width: 1240px;
         margin: 0 auto;
-        padding: 45px 24px 70px;
+        padding: 44px 28px 76px;
     }
 
     .page-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
-        margin-bottom: 30px;
         gap: 20px;
+        margin-bottom: 32px;
     }
 
     .header-small {
-        color: #e11d48;
-        font-size: 13px;
+        color: var(--rn-brown);
+        font-size: 12px;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 1.2px;
-        margin-bottom: 6px;
+        letter-spacing: 1.8px;
+        margin-bottom: 9px;
     }
 
     .page-title {
         margin: 0;
-        color: #111827;
-        font-size: 38px;
+        color: var(--rn-text);
+        font-size: clamp(30px, 3.5vw, 40px);
+        line-height: 1.15;
         font-weight: 800;
-        letter-spacing: -0.8px;
+        letter-spacing: -1.1px;
     }
 
     .page-subtitle {
-        margin: 8px 0 0;
-        color: #6b7280;
+        margin: 11px 0 0;
+        color: var(--rn-muted);
         font-size: 15px;
+        line-height: 1.7;
     }
 
     .booking-count {
-        background: #fff1f2;
-        color: #be123c;
-        border: 1px solid #fecdd3;
-        padding: 9px 15px;
-        border-radius: 30px;
-        font-size: 14px;
-        font-weight: 700;
+        background: var(--rn-brown-light);
+        color: var(--rn-brown-dark);
+        border: 1px solid #e5d4c3;
+        padding: 10px 16px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 750;
         white-space: nowrap;
     }
 
     .empty-bookings {
-        background: white;
-        border: 1px solid #e5e7eb;
+        background: var(--rn-surface);
+        border: 1px solid var(--rn-border);
         border-radius: 22px;
-        padding: 70px 30px;
+        padding: 72px 30px;
         text-align: center;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        box-shadow: var(--rn-shadow);
     }
 
     .empty-icon {
-        width: 70px;
-        height: 70px;
-        margin: 0 auto 20px;
-        border-radius: 50%;
-        background: #fff1f2;
+        width: 76px;
+        height: 76px;
+        margin: 0 auto 22px;
+        border-radius: 22px;
+        background: var(--rn-brown-light);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 30px;
+        font-size: 32px;
     }
 
     .empty-bookings h2 {
         margin: 0;
-        color: #111827;
-        font-size: 24px;
+        color: var(--rn-text);
+        font-size: 25px;
+        font-weight: 800;
+        letter-spacing: -0.4px;
     }
 
     .empty-bookings p {
-        color: #6b7280;
-        margin: 10px 0 25px;
+        color: var(--rn-muted);
+        margin: 12px 0 26px;
+        line-height: 1.7;
     }
 
     .explore-button {
@@ -96,45 +120,51 @@
         align-items: center;
         justify-content: center;
         text-decoration: none;
-        background: #e11d48;
-        color: white;
-        padding: 12px 22px;
-        border-radius: 10px;
-        font-weight: 700;
-        transition: 0.2s;
+        background: var(--rn-brown);
+        color: #ffffff;
+        padding: 13px 23px;
+        border: 1px solid var(--rn-brown);
+        border-radius: 11px;
+        font-weight: 750;
+        font-size: 14px;
+        transition: background 0.2s ease, transform 0.2s ease,
+            box-shadow 0.2s ease;
     }
 
     .explore-button:hover {
-        background: #be123c;
+        background: var(--rn-brown-dark);
+        border-color: var(--rn-brown-dark);
+        color: #ffffff;
         transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(99, 74, 53, 0.18);
     }
 
     .booking-list {
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        gap: 26px;
     }
 
     .booking-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 22px;
+        background: var(--rn-surface);
+        border: 1px solid var(--rn-border);
+        border-radius: 21px;
         overflow: hidden;
         display: grid;
-        grid-template-columns: 330px 1fr;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
-        transition: all 0.25s ease;
+        grid-template-columns: minmax(250px, 31%) minmax(0, 1fr);
+        box-shadow: var(--rn-shadow);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
 
     .booking-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.10);
+        transform: translateY(-2px);
+        box-shadow: 0 18px 42px rgba(65, 48, 31, 0.11);
     }
 
     .booking-image-container {
         position: relative;
         min-height: 330px;
-        background: #f1f5f9;
+        background: #e9e1d7;
         overflow: hidden;
     }
 
@@ -144,35 +174,36 @@
         min-height: 330px;
         object-fit: cover;
         display: block;
-        transition: transform 0.4s ease;
+        transition: transform 0.45s ease;
     }
 
     .booking-card:hover .booking-image {
-        transform: scale(1.03);
+        transform: scale(1.025);
     }
 
     .status-badge {
         position: absolute;
         top: 16px;
         left: 16px;
-        padding: 8px 13px;
-        border-radius: 30px;
-        font-size: 12px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 11px;
         font-weight: 800;
-        backdrop-filter: blur(8px);
+        backdrop-filter: blur(10px);
         z-index: 1;
+        letter-spacing: 0.1px;
     }
 
     .status-confirmed {
-        background: rgba(220, 252, 231, 0.95);
-        color: #15803d;
-        border: 1px solid #bbf7d0;
+        background: rgba(232, 244, 233, 0.96);
+        color: var(--rn-green-text);
+        border: 1px solid #cde4d0;
     }
 
     .status-cancelled {
-        background: rgba(254, 226, 226, 0.95);
-        color: #b91c1c;
-        border: 1px solid #fecaca;
+        background: rgba(248, 232, 228, 0.96);
+        color: var(--rn-red-text);
+        border: 1px solid #ecd0c9;
     }
 
     .booking-content {
@@ -186,108 +217,122 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        gap: 20px;
+        gap: 22px;
     }
 
     .property-label {
-        color: #e11d48;
-        font-size: 12px;
+        color: var(--rn-brown);
+        font-size: 11px;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 6px;
+        letter-spacing: 1.5px;
+        margin-bottom: 8px;
     }
 
     .property-name {
         margin: 0;
-        color: #111827;
-        font-size: 27px;
+        color: var(--rn-text);
+        font-size: clamp(22px, 2.2vw, 28px);
+        line-height: 1.25;
         font-weight: 800;
+        letter-spacing: -0.6px;
         overflow-wrap: anywhere;
     }
 
     .property-location {
-        margin-top: 7px;
-        color: #6b7280;
-        font-size: 14px;
+        margin-top: 9px;
+        color: var(--rn-muted);
+        font-size: 13px;
+        line-height: 1.6;
     }
 
     .total-price {
-        text-align: right;
+                    text-align: right;
+        flex-shrink: 0;
         white-space: nowrap;
     }
 
     .total-label {
-        color: #9ca3af;
-        font-size: 12px;
-        margin-bottom: 3px;
+        color: #9b9084;
+        font-size: 11px;
+        margin-bottom: 5px;
     }
 
     .total-value {
-        color: #111827;
-        font-size: 25px;
+        color: var(--rn-text);
+        font-size: clamp(20px, 2vw, 25px);
         font-weight: 800;
+        letter-spacing: -0.5px;
     }
 
     .booking-divider {
         height: 1px;
-        background: #e5e7eb;
-        margin: 23px 0;
+        background: var(--rn-border);
+        margin: 23px 0 20px;
     }
 
     .details-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
+        gap: 11px;
     }
 
     .detail-box {
-        background: #f8fafc;
-        border: 1px solid #e5e7eb;
+        background: #faf8f5;
+        border: 1px solid #ece5dd;
         border-radius: 13px;
-        padding: 14px;
+        padding: 14px 13px;
         min-width: 0;
+        transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .detail-box:hover {
+        background: #f7f1e9;
+        border-color: #e0d0bf;
     }
 
     .detail-icon {
-        font-size: 18px;
-        margin-bottom: 7px;
+        font-size: 17px;
+        margin-bottom: 9px;
     }
 
     .detail-label {
-        color: #9ca3af;
-        font-size: 11px;
-        font-weight: 700;
+        color: #968a7d;
+        font-size: 10px;
+        font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.8px;
     }
 
     .detail-value {
-        color: #111827;
-        font-size: 14px;
-        font-weight: 700;
-        margin-top: 4px;
+        color: var(--rn-text);
+        font-size: 13px;
+        font-weight: 750;
+        line-height: 1.5;
+        margin-top: 5px;
         overflow-wrap: anywhere;
     }
 
     .booking-info {
-        margin-top: 18px;
-        background: #fff7f8;
-        border: 1px solid #ffe4e6;
-        border-radius: 13px;
-        padding: 13px 15px;
-        color: #6b7280;
-        font-size: 13px;
+        margin-top: 16px;
+        background: #faf6f1;
+        border: 1px solid #eee2d5;
+        border-radius: 14px;
+        padding: 16px;
+        color: var(--rn-muted);
+        font-size: 12px;
+        line-height: 1.55;
     }
 
     .booking-info strong {
-        color: #374151;
+        color: #504438;
     }
 
     .price-breakdown-title {
         font-weight: 800;
-        color: #374151;
-        margin-bottom: 12px;
+        color: var(--rn-text);
+        font-size: 13px;
+        margin-bottom: 13px;
     }
 
     .price-breakdown-row {
@@ -295,7 +340,7 @@
         justify-content: space-between;
         align-items: flex-start;
         gap: 16px;
-        margin-bottom: 9px;
+        margin-bottom: 10px;
     }
 
     .price-breakdown-row span {
@@ -305,26 +350,33 @@
     .price-breakdown-row strong {
         white-space: nowrap;
         text-align: right;
+        color: #51463b;
     }
 
     .price-breakdown-total {
-        border-top: 1px solid #fecdd3;
-        padding-top: 12px;
-        margin-top: 12px;
+        border-top: 1px solid #e4d4c4;
+        padding-top: 13px;
+        margin-top: 13px;
         display: flex;
         justify-content: space-between;
+        align-items: baseline;
         gap: 16px;
-        font-size: 16px;
+        font-size: 14px;
+    }
+
+    .price-breakdown-total strong:first-child {
+        color: var(--rn-text);
     }
 
     .price-breakdown-total strong:last-child {
-        color: #e11d48;
+        color: var(--rn-brown-dark);
         white-space: nowrap;
+        font-size: 15px;
     }
 
     .booking-actions {
         margin-top: auto;
-        padding-top: 24px;
+        padding-top: 22px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -336,41 +388,75 @@
         align-items: center;
         justify-content: center;
         text-decoration: none;
-        color: #374151;
-        border: 1px solid #d1d5db;
-        background: white;
-        padding: 11px 18px;
+        color: var(--rn-brown-dark);
+        border: 1px solid #d9c7b5;
+        background: #ffffff;
+        padding: 11px 17px;
         border-radius: 10px;
-        font-size: 14px;
-        font-weight: 700;
-        transition: 0.2s;
+        font-size: 13px;
+        font-weight: 750;
+        transition: background 0.2s ease, border-color 0.2s ease,
+            transform 0.2s ease;
     }
 
     .view-property:hover {
-        background: #f9fafb;
-        border-color: #9ca3af;
+        background: var(--rn-brown-light);
+        border-color: #c9ad94;
+        color: var(--rn-brown-dark);
+        transform: translateY(-1px);
     }
 
     .cancel-button {
-        border: none;
-        background: #fee2e2;
-        color: #b91c1c;
-        padding: 11px 18px;
+        border: 1px solid #ead1ca;
+        background: var(--rn-red-bg);
+        color: var(--rn-red-text);
+        padding: 11px 17px;
         border-radius: 10px;
-        font-size: 14px;
-        font-weight: 700;
+        font-size: 13px;
+        font-weight: 750;
         cursor: pointer;
-        transition: 0.2s;
+        transition: background 0.2s ease, border-color 0.2s ease;
     }
 
     .cancel-button:hover {
-        background: #fecaca;
+        background: #f2d9d3;
+        border-color: #dfb9af;
     }
 
     .cancelled-message {
-        color: #9ca3af;
-        font-size: 13px;
-        font-weight: 600;
+        color: #92877b;
+        font-size: 12px;
+        font-weight: 650;
+        line-height: 1.6;
+    }
+
+    .view-property:focus-visible,
+    .explore-button:focus-visible,
+    .cancel-button:focus-visible {
+        outline: 3px solid #c5a78b;
+        outline-offset: 3px;
+    }
+
+    @media (max-width: 1000px) {
+        .booking-card {
+            grid-template-columns: minmax(220px, 30%) minmax(0, 1fr);
+        }
+
+        .booking-content {
+            padding: 24px;
+        }
+
+        .booking-top {
+            gap: 14px;
+        }
+
+        .details-grid {
+            gap: 8px;
+        }
+
+        .detail-box {
+            padding: 12px 10px;
+        }
     }
 
     @media (max-width: 850px) {
@@ -379,56 +465,133 @@
         }
 
         .booking-image-container {
-            min-height: 280px;
+            min-height: 270px;
+            max-height: 340px;
         }
 
         .booking-image {
-            min-height: 280px;
+            min-height: 270px;
+            max-height: 340px;
         }
 
-        .details-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+        .booking-content {
+            padding: 25px;
         }
     }
 
     @media (max-width: 650px) {
         .bookings-page {
-            padding: 30px 15px 50px;
+            padding: 30px 15px 48px;
         }
 
         .page-header {
             align-items: flex-start;
             flex-direction: column;
+            gap: 15px;
+            margin-bottom: 24px;
         }
 
         .page-title {
-            font-size: 31px;
+            font-size: 32px;
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+                    }
+
+        .booking-count {
+            padding: 9px 13px;
+        }
+
+        .booking-list {
+            gap: 20px;
+        }
+
+        .booking-card {
+            border-radius: 17px;
+        }
+
+        .booking-image-container {
+            min-height: 235px;
+            max-height: 270px;
+        }
+
+        .booking-image {
+            min-height: 235px;
+            max-height: 270px;
         }
 
         .booking-content {
-            padding: 22px;
+            padding: 20px 17px;
         }
 
         .booking-top {
             flex-direction: column;
+            gap: 15px;
         }
 
         .total-price {
             text-align: left;
         }
 
+        .total-value {
+            font-size: 23px;
+        }
+
+        .booking-divider {
+            margin: 19px 0;
+        }
+
         .details-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 7px;
+        }
+
+        .detail-box {
+            padding: 11px 8px;
+            border-radius: 10px;
+        }
+
+        .detail-icon {
+            font-size: 15px;
+        }
+
+        .detail-label {
+            font-size: 9px;
+            letter-spacing: 0.4px;
+        }
+
+        .detail-value {
+            font-size: 12px;
+        }
+
+        .booking-info {
+            padding: 13px;
+        }
+
+        .price-breakdown-row,
+        .price-breakdown-total {
+            gap: 10px;
+        }
+
+        .price-breakdown-total {
+            font-size: 13px;
+        }
+
+        .price-breakdown-total strong:last-child {
+            font-size: 14px;
         }
 
         .booking-actions {
             flex-direction: column;
             align-items: stretch;
+            gap: 10px;
         }
 
         .view-property,
         .cancel-button {
             width: 100%;
+            min-height: 43px;
             text-align: center;
         }
 
@@ -436,12 +599,62 @@
             width: 100%;
         }
 
+        .cancelled-message {
+            text-align: center;
+        }
+
+        .empty-bookings {
+            padding: 52px 20px;
+            border-radius: 18px;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .detail-box {
+            display: grid;
+            grid-template-columns: 28px 1fr;
+            column-gap: 8px;
+            align-items: center;
+        }
+
+        .detail-icon {
+            grid-row: span 2;
+            margin: 0;
+        }
+
+        .detail-label,
+        .detail-value {
+            margin-top: 0;
+        }
+
         .price-breakdown-row,
         .price-breakdown-total {
-            gap: 10px;
+            font-size: 11px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .booking-card,
+        .booking-image,
+        .explore-button,
+        .view-property,
+        .cancel-button {
+            transition: none;
+        }
+
+        .booking-card:hover,
+        .booking-card:hover .booking-image,
+        .explore-button:hover,
+        .view-property:hover {
+            transform: none;
         }
     }
 </style>
+
 
 </head>
 
@@ -466,6 +679,26 @@
                 <%= (bookings || []).length === 1 ? "Booking" : "Bookings" %>
             </div>
         </div>
+
+        <% if (earlyCheckoutError) { %>
+  <div
+    role="alert"
+    style="
+      margin-bottom: 24px;
+      padding: 16px 18px;
+      border: 1px solid #ecd0c9;
+      border-radius: 12px;
+      background: #f8e8e4;
+      color: #a4493d;
+      line-height: 1.6;
+    "
+  >
+    <strong>Unable to submit early checkout</strong>
+    <p style="margin: 5px 0 0;">
+      <%= earlyCheckoutError %>
+    </p>
+  </div>
+<% } %>
 
         <!-- NO BOOKINGS -->
         <% if (!bookings || bookings.length === 0) { %>
@@ -533,8 +766,7 @@
                         const savedExtraGuestFee =
                             booking.extraGuestFee !== null &&
                             booking.extraGuestFee !== undefined &&
-                            booking.extraGuestFee !== "" &&
-                            Number.isFinite(Number(booking.extraGuestFee)) &&
+                            booking.extraGuestFee !== "" &&                             Number.isFinite(Number(booking.extraGuestFee)) &&
                             Number(booking.extraGuestFee) >= 0
                                 ? Number(booking.extraGuestFee)
                                 : null;
@@ -578,6 +810,32 @@
                                     year: "numeric"
                                 })
                                 : "Not available";
+                        };
+
+                                                const formatDateInput = (value) => {
+                            const date = new Date(value);
+
+                            if (Number.isNaN(date.getTime())) {
+                                return "";
+                            }
+
+                            return [
+                                date.getFullYear(),
+                                String(date.getMonth() + 1).padStart(2, "0"),
+                                String(date.getDate()).padStart(2, "0")
+                            ].join("-");
+                        };
+
+                        const getPreviousDateInput = (value) => {
+                            const date = new Date(value);
+
+                            if (Number.isNaN(date.getTime())) {
+                                return "";
+                            }
+
+                            date.setDate(date.getDate() - 1);
+
+                            return formatDateInput(date);
                         };
                     %>
 
@@ -752,8 +1010,7 @@
                         </article>
 
                     <% } else { %>
-                        <!-- PROPERTY STILL EXISTS -->
-                        <article class="booking-card">
+                        <!-- PROPERTY STILL EXISTS -->                        <article class="booking-card">
                             <!-- PROPERTY IMAGE -->
                             <div class="booking-image-container">
                                 <% if (booking.status === "confirmed") { %>
@@ -911,6 +1168,111 @@
                                     </div>
                                 </div>
 
+                                <%
+  const earlyRequest = booking.earlyCheckout || {};
+  const earlyRequestStatus = earlyRequest.requestStatus || "none";
+
+  const todayForEarlyCheckout = new Date();
+  todayForEarlyCheckout.setHours(0, 0, 0, 0);
+
+  const checkInForEarlyCheckout = new Date(booking.checkIn);
+  checkInForEarlyCheckout.setHours(0, 0, 0, 0);
+
+  const checkOutForEarlyCheckout = new Date(booking.checkOut);
+  checkOutForEarlyCheckout.setHours(0, 0, 0, 0);
+
+  const canRequestEarlyCheckout =
+    booking.status === "confirmed" &&
+    todayForEarlyCheckout >= checkInForEarlyCheckout &&
+    todayForEarlyCheckout < checkOutForEarlyCheckout &&
+    earlyRequestStatus !== "pending" &&
+    earlyRequestStatus !== "approved";
+
+  const todayDateInput = [
+    todayForEarlyCheckout.getFullYear(),
+    String(todayForEarlyCheckout.getMonth() + 1).padStart(2, "0"),
+    String(todayForEarlyCheckout.getDate()).padStart(2, "0")
+  ].join("-");
+%>
+
+<% if (booking.status === "confirmed") { %>
+  <section class="booking-info">
+    <h3>Early checkout</h3>
+
+    <% if (earlyRequestStatus === "pending") { %>
+      <p>Your early-checkout request is awaiting the host's decision.</p>
+
+    <% } else if (earlyRequestStatus === "approved") { %>
+      <p>
+        Your early checkout was approved.
+        New checkout:
+        <strong><%= formatDate(booking.checkOut) %></strong>
+      </p>
+
+      <p>
+        Approved refund:
+        <strong>
+          ₹<%= formatINR(earlyRequest.approvedRefund || 0) %>
+        </strong>
+      </p>
+
+      <% if (earlyRequest.refundStatus === "approved_pending_payment") { %>
+        <p>The refund has been approved but payment processing is still pending.</p>
+      <% } else if (earlyRequest.refundStatus === "refunded") { %>
+        <p>Your refund has been marked as completed.</p>
+      <% } %>
+
+    <% } else if (earlyRequestStatus === "rejected") { %>
+      <p>The host rejected your previous request. You may submit a new request.</p>
+
+    <% } %>
+
+    <% if (canRequestEarlyCheckout) { %>
+      <form
+        action="/bookings/<%= booking._id %>/early-checkout"
+        method="POST"
+        style="margin-top:14px;"
+      >
+        <label for="early-date-<%= booking._id %>">
+          Requested checkout date
+        </label>
+
+        <input
+          id="early-date-<%= booking._id %>"
+          type="date"
+          name="requestedCheckOut"
+          min="<%= todayDateInput %>"
+          max="<%= getPreviousDateInput(booking.checkOut) %>"
+          required
+          style="display:block;width:100%;max-width:320px;padding:10px;margin:8px 0 14px;"
+        />
+
+        <label for="early-reason-<%= booking._id %>">
+          Reason for early checkout
+        </label>
+
+        <textarea
+          id="early-reason-<%= booking._id %>"
+          name="reason"
+          maxlength="1000"
+          required
+          rows="3"
+          placeholder="Tell your host why you need to leave early."
+          style="display:block;width:100%;padding:10px;margin:8px 0 14px;"
+        ></textarea>
+                <p>
+          Your host must approve the request before your booking dates change.
+          Any refund is subject to the host's decision.
+        </p>
+
+        <button type="submit" class="cancel-button">
+          Request early checkout
+        </button>
+      </form>
+    <% } %>
+  </section>
+<% } %>
+
                                 <!-- ACTIONS -->
                                 <div class="booking-actions">
                                     <a
@@ -920,7 +1282,11 @@
                                         View Property →
                                     </a>
 
-                                    <% if (booking.status === "confirmed") { %>
+                                    <% if (
+                                        booking.status === "confirmed" &&
+                                        booking.checkIn &&
+                                        new Date(booking.checkIn).getTime() > Date.now()
+                                    ) { %>
                                         <form
                                             action="/cancel-booking/<%= booking._id %>"
                                             method="POST"
@@ -933,6 +1299,10 @@
                                                 Cancel Booking
                                             </button>
                                         </form>
+                                    <% } else if (booking.status === "confirmed") { %>
+                                        <span class="cancelled-message">
+                                            Cancellation is no longer available after check-in begins.
+                                        </span>
                                     <% } else { %>
                                         <span class="cancelled-message">
                                             This booking has been cancelled.

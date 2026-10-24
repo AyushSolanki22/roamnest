@@ -1,67 +1,325 @@
 <%- include('../partials/head') %>
 
 <style>
+
+/* =========================================
+   ROAMNEST — ADD / EDIT A STAY
+   Brand styling only. Preserve EJS and logic.
+========================================= */
+
+:root {
+  --rn-cream: #F8F6F2;
+  --rn-surface: #FFFFFF;
+  --rn-brown: #806247;
+  --rn-brown-dark: #634A35;
+  --rn-brown-light: #E8E0D7;
+  --rn-border: #E6DED5;
+  --rn-text: #29251F;
+  --rn-muted: #81776C;
+  --rn-soft: #F3EEE8;
+  --rn-shadow: 0 12px 32px rgba(65, 47, 31, 0.06);
+}
+
+/* Page background */
+body {
+  background: var(--rn-cream) !important;
+  color: var(--rn-text) !important;
+}
+
+main.min-h-screen {
+  background: var(--rn-cream) !important;
+  color: var(--rn-text);
+}
+
+/* Page heading */
+main h1 {
+  color: var(--rn-text) !important;
+  letter-spacing: -0.035em;
+}
+
+main > div > div:first-child p {
+  color: var(--rn-muted) !important;
+}
+
+/* Host Dashboard badge */
+main .bg-red-100.text-red-600 {
+  background: var(--rn-brown-light) !important;
+  color: var(--rn-brown-dark) !important;
+}
+
+/* Main form sections */
+main form > section {
+  background: var(--rn-surface) !important;
+  border: 1px solid var(--rn-border) !important;
+  border-radius: 20px !important;
+  box-shadow: var(--rn-shadow) !important;
+  overflow: hidden;
+}
+
+/* Consistent section headers */
+main form > section > div:first-child {
+  background: var(--rn-cream) !important;
+  border-bottom: 1px solid var(--rn-border) !important;
+}
+
+/* Replace colorful icon tiles with taupe */
+main .bg-red-100,
+main .bg-emerald-100,
+main .bg-blue-100,
+main .bg-purple-100,
+main .bg-amber-100 {
+  background: var(--rn-brown-light) !important;
+}
+
+/* Section headings and supporting text */
+main form h2 {
+  color: var(--rn-text) !important;
+  letter-spacing: -0.02em;
+}
+
+main form section p {
+  color: var(--rn-muted);
+}
+
+/* Labels */
+main form label {
+  color: var(--rn-text) !important;
+  font-weight: 600;
+}
+
+/* Text, number and textarea fields */
+main form input:not([type="file"]),
+main form textarea {
+  width: 100%;
+  color: var(--rn-text) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #D8CEC2 !important;
+  border-radius: 12px !important;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+main form input:not([type="file"]) {
+  min-height: 49px;
+}
+
+main form textarea {
+  line-height: 1.7;
+}
+
+main form input:not([type="file"])::placeholder,
+main form textarea::placeholder {
+  color: #A49A8F !important;
+  opacity: 1;
+}
+
+main form input:not([type="file"]):hover,
+main form textarea:hover {
+  border-color: #B8A48F !important;
+}
+
+main form input:not([type="file"]):focus,
+main form textarea:focus {
+  border-color: var(--rn-brown) !important;
+  box-shadow: 0 0 0 4px rgba(128, 98, 71, 0.13) !important;
+}
+
+/* Currency symbols */
+main form .text-emerald-600 {
+  color: var(--rn-brown) !important;
+}
+
+/* Pricing explanation panel */
+main form .border-emerald-200.bg-emerald-50 {
+  background: var(--rn-cream) !important;
+  border-color: var(--rn-border) !important;
+}
+
+main form .text-emerald-800,
+main form .text-emerald-700 {
+  color: var(--rn-brown-dark) !important;
+}
+
+/* Photo and house-rules upload areas */
+main form label[for="photo"],
+main form label[for="houseRules"] {
+  background: var(--rn-cream) !important;
+  border: 2px dashed #C7B5A2 !important;
+  border-radius: 16px !important;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+main form label[for="photo"]:hover,
+main form label[for="houseRules"]:hover {
+  background: var(--rn-soft) !important;
+  border-color: var(--rn-brown) !important;
+}
+
+main form label[for="photo"] .text-purple-900,
+main form label[for="houseRules"] .text-amber-900 {
+  color: var(--rn-text) !important;
+}
+
+main form label[for="photo"] .text-purple-700,
+main form label[for="houseRules"] .text-amber-700 {
+  color: var(--rn-muted) !important;
+}
+
+/* Upload action chips */
+main form label[for="photo"] .bg-purple-600,
+main form label[for="houseRules"] .bg-amber-500 {
+  background: var(--rn-brown) !important;
+  color: #FFFFFF !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+  transition: background 0.2s ease;
+}
+
+main form label[for="photo"]:hover .bg-purple-600,
+main form label[for="houseRules"]:hover .bg-amber-500 {
+  background: var(--rn-brown-dark) !important;
+}
+
+/* Existing property photo */
+main form .bg-slate-50 {
+  background: var(--rn-cream) !important;
+}
+
+main form img {
+  border-radius: 12px;
+}
+
+/* Current house rules document */
+main form .border-amber-200.bg-amber-50 {
+  background: var(--rn-cream) !important;
+  border-color: var(--rn-border) !important;
+}
+
+main form .bg-red-100 {
+  background: var(--rn-brown-light) !important;
+}
+
+/* View PDF button */
+main form a.bg-slate-900 {
+  background: var(--rn-brown-dark) !important;
+  color: #FFFFFF !important;
+  border-radius: 10px !important;
+}
+
+main form a.bg-slate-900:hover {
+  background: var(--rn-brown) !important;
+}
+
+/* Publish / update panel */
+main form > section:last-child > div {
+  background: var(--rn-cream) !important;
+  border: 1px solid var(--rn-border) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+main form > section:last-child h2 {
+  color: var(--rn-text) !important;
+}
+
+main form > section:last-child p {
+  color: var(--rn-muted) !important;
+}
+
+/* Primary publish button */
+.publish-property-btn {
+  width: 100% !important;
+  min-height: 58px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  padding: 16px 24px !important;
+
+  background: var(--rn-brown) !important;
+  color: #FFFFFF !important;
+  border: 1px solid var(--rn-brown) !important;
+  border-radius: 12px !important;
+
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+
+  box-shadow: 0 8px 20px rgba(99, 74, 53, 0.18) !important;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease !important;
+}
+
+.publish-property-btn:hover {
+  background: var(--rn-brown-dark) !important;
+  color: #FFFFFF !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 12px 25px rgba(99, 74, 53, 0.23) !important;
+}
+
+.publish-property-btn:active {
+  transform: translateY(0) !important;
+}
+
+.publish-property-btn span {
+  color: #FFFFFF !important;
+}
+
+.publish-property-btn:focus-visible {
+  outline: 3px solid rgba(128, 98, 71, 0.28);
+  outline-offset: 3px;
+}
+
+/* Keyboard accessibility */
+main form a:focus-visible,
+main form label:focus-within {
+  outline-color: var(--rn-brown);
+}
+
+/* Mobile refinements */
+@media (max-width: 640px) {
+  main.min-h-screen {
+    padding-top: 28px;
+    padding-bottom: 36px;
+  }
+
+  main form > section {
+    border-radius: 16px !important;
+  }
+
+  main form > section > div:first-child {
+    padding: 18px !important;
+  }
+
+  main form > section > div:last-child {
+    padding: 18px !important;
+  }
+
+  main form > section:last-child > div {
+    padding: 20px !important;
+  }
+
   .publish-property-btn {
-    width: 100% !important;
-    min-height: 60px !important;
-
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 10px !important;
-
-    padding: 16px 24px !important;
-
-    background: linear-gradient(
-      135deg,
-      #ef4444,
-      #dc2626,
-      #be123c
-    ) !important;
-
-    color: #ffffff !important;
-
-    border: none !important;
-    border-radius: 14px !important;
-
-    font-size: 18px !important;
-    font-weight: 700 !important;
-    font-family: inherit !important;
-
-    cursor: pointer !important;
-
-    box-shadow:
-      0 8px 20px rgba(220, 38, 38, 0.25) !important;
-
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease,
-      background 0.2s ease !important;
+    min-height: 54px !important;
+    font-size: 16px !important;
   }
+}
 
-  .publish-property-btn:hover {
-    background: linear-gradient(
-      135deg,
-      #dc2626,
-      #b91c1c,
-      #9f1239
-    ) !important;
-
-    color: #ffffff !important;
-
-    transform: translateY(-2px) !important;
-
-    box-shadow:
-      0 12px 25px rgba(220, 38, 38, 0.35) !important;
+@media (prefers-reduced-motion: reduce) {
+  main form *,
+  .publish-property-btn {
+    transition: none !important;
   }
-
-  .publish-property-btn:active {
-    transform: translateY(0) !important;
-  }
-
-  .publish-property-btn span {
-    color: #ffffff !important;
-  }
+}
 </style>
 
 

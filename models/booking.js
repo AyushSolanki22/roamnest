@@ -138,6 +138,74 @@ const bookingSchema = new mongoose.Schema(
         message: "Total price must be a valid number.",
       },
     },
+        earlyCheckout: {
+      requestStatus: {
+        type: String,
+        enum: ["none", "pending", "approved", "rejected"],
+        default: "none",
+      },
+
+      requestedCheckOut: {
+        type: Date,
+        default: null,
+      },
+
+      reason: {
+        type: String,
+        default: "",
+        maxlength: 1000,
+      },
+
+      requestedAt: {
+        type: Date,
+        default: null,
+      },
+
+      decidedAt: {
+        type: Date,
+        default: null,
+      },
+
+      decidedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+      },
+
+      decisionNote: {
+        type: String,
+        default: "",
+        maxlength: 1000,
+      },
+
+      eligibleRefund: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+
+      approvedRefund: {
+        type: Number,
+        default: null,
+        min: 0,
+      },
+
+      refundStatus: {
+        type: String,
+        enum: ["not_applicable", "approved_pending_payment", "refunded"],
+        default: "not_applicable",
+      },
+
+      // Preserve the pre-adjustment booking if the host approves.
+      originalBooking: {
+        checkIn: Date,
+        checkOut: Date,
+        nights: Number,
+        baseAmount: Number,
+        extraGuestAmount: Number,
+        totalPrice: Number,
+      },
+    },
 
     status: {
       type: String,

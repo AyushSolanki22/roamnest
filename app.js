@@ -82,6 +82,10 @@ app.use(authRouter);
 app.use(storeRouter);
 app.use(bookingRouter);
 
+const reviewRouter = require("./routes/reviewRouter");
+
+app.use(reviewRouter);
+
 // Host routes.
 // hostRouter also enforces login and host-role authorization internally.
 app.use("/host", requireLogin);

@@ -549,13 +549,30 @@ exports.getBookings = async (req, res, next) => {
       .populate("home")
       .sort({ createdAt: -1 });
 
-    return res.render("store/bookings", {
-      bookings,
-      pageTitle: "My Bookings",
-      currPage: "bookings",
-      isLoggedIn: req.session.isLoggedIn,
-      user: req.session.user || {}
-    });
+    const allowedEarlyCheckoutErrors = new Set([
+  "Please provide a valid checkout date.",
+  "Early checkout can only be requested after check-in.",
+  "The new checkout date must be after today and check-in, and before the original checkout.",
+  "An early checkout request is already pending or has been approved.",
+  "Invalid early checkout duration.",
+  "Unable to calculate the eligible refund.",
+  "Please provide a reason."
+]);
+
+const earlyCheckoutError =
+  typeof req.query.earlyCheckoutError === "string" &&
+  allowedEarlyCheckoutErrors.has(req.query.earlyCheckoutError)
+    ? req.query.earlyCheckoutError
+    : "";
+
+return res.render("store/bookings", {
+  bookings,
+  earlyCheckoutError,
+  pageTitle: "My Bookings",
+  currPage: "bookings",
+  isLoggedIn: req.session.isLoggedIn,
+  user: req.session.user || {}
+});
   } catch (error) {
     next(error);
   }
@@ -564,6 +581,7 @@ exports.getBookings = async (req, res, next) => {
 // ======================================================
 // CANCEL BOOKING
 // ======================================================
+
 
 exports.postCancelBooking = async (req, res, next) => {
   try {
@@ -577,7 +595,7 @@ exports.postCancelBooking = async (req, res, next) => {
       return res.status(400).send("Invalid booking ID.");
     }
 
-    // Only find confirmed bookings owned by the logged-in user.
+    // Find only a confirmed booking belonging to this user.
     const booking = await Booking.findOne({
       _id: bookingId,
       user: req.session.user.id,
@@ -588,7 +606,204 @@ exports.postCancelBooking = async (req, res, next) => {
       return res.status(404).send("Booking not found.");
     }
 
+    // Cancellation is allowed only before check-in.
+    const now = new Date();
+    const checkIn = new Date(booking.checkIn);
+
+    if (
+      Number.isNaN(checkIn.getTime()) ||
+      now >= checkIn
+    ) {
+      return res
+        .status(403)
+        .send("This booking can only be cancelled before check-in.");
+    }
+
+    // Cancel only after all validations pass.
     booking.status = "cancelled";
+    await booking.save();
+
+    return res.redirect("/bookings");
+  } catch (error) {
+    next(error);
+  }
+};
+
+const parseEarlyCheckoutDate = (value) => {
+  if (
+    typeof value !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(value)
+  ) {
+    return null;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const earlyCheckoutNights = (start, end) => {
+  const startUtc = Date.UTC(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate()
+  );
+
+  const endUtc = Date.UTC(
+    end.getFullYear(),
+    end.getMonth(),
+    end.getDate()
+  );
+
+  return (endUtc - startUtc) / 86400000;
+};
+
+const moneyInPaise = (value) =>
+  Math.round((Number(value) + Number.EPSILON) * 100);
+
+
+
+exports.postRequestEarlyCheckout = async (req, res, next) => {
+  try {
+    const userId = req.session?.user?.id;
+
+    if (!userId) {
+      return res.redirect("/login");
+    }
+
+    const { bookingId } = req.params;
+    const { requestedCheckOut, reason } = req.body;
+
+    if (!mongoose.isValidObjectId(bookingId)) {
+      return res.status(400).send("Invalid booking ID.");
+    }
+
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      user: userId,
+      status: "confirmed",
+    });
+
+    if (!booking) {
+      return res.status(404).send("Booking not found.");
+    }
+
+    const home = await Home.findById(booking.home);
+
+    if (!home) {
+      return res.status(404).send("Property not found.");
+    }
+
+    const requestedDate = parseEarlyCheckoutDate(requestedCheckOut);
+
+    if (!requestedDate) {
+  const message = "Please provide a valid checkout date.";
+
+  return res.redirect(
+    `/bookings?earlyCheckoutError=${encodeURIComponent(message)}`
+  );
+}
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const originalCheckIn = new Date(booking.checkIn);
+    originalCheckIn.setHours(0, 0, 0, 0);
+
+    const originalCheckOut = new Date(booking.checkOut);
+    originalCheckOut.setHours(0, 0, 0, 0);
+
+    if (today < originalCheckIn) {
+      return res.status(403).send(
+        "Early checkout can only be requested after check-in."
+      );
+    }
+
+    
+    if (
+      requestedDate <= today ||
+      requestedDate <= originalCheckIn ||
+      requestedDate >= originalCheckOut
+    ) {
+      const message =
+        "The new checkout date must be after today and check-in, and before the original checkout.";
+
+      return res.redirect(
+        `/bookings?earlyCheckoutError=${encodeURIComponent(message)}`
+      );
+    }
+
+    const requestStatus =
+      booking.earlyCheckout?.requestStatus || "none";
+
+
+    const oldNights = earlyCheckoutNights(
+      originalCheckIn,
+      originalCheckOut
+    );
+
+    const newNights = earlyCheckoutNights(
+      originalCheckIn,
+      requestedDate
+    );
+
+    const unusedNights = oldNights - newNights;
+
+    if (
+      !Number.isInteger(unusedNights) ||
+      unusedNights < 1
+    ) {
+      return res.status(400).send("Invalid early checkout duration.");
+    }
+
+    // Use historical booking prices, never the property's current price.
+    const nightlyBasePaise = moneyInPaise(booking.basePrice);
+    const nightlyExtraGuestPaise = moneyInPaise(
+      Number(booking.extraGuests) * Number(booking.extraGuestFee)
+    );
+
+    const eligibleRefundPaise =
+      (nightlyBasePaise + nightlyExtraGuestPaise) * unusedNights;
+
+    if (
+      !Number.isSafeInteger(eligibleRefundPaise) ||
+      eligibleRefundPaise < 0
+    ) {
+      return res.status(400).send(
+        "Unable to calculate the eligible refund."
+      );
+    }
+
+    const cleanedReason =
+      typeof reason === "string" ? reason.trim().slice(0, 1000) : "";
+
+    if (!cleanedReason) {
+      return res.status(400).send("Please provide a reason.");
+    }
+
+    booking.earlyCheckout = {
+      requestStatus: "pending",
+      requestedCheckOut: requestedDate,
+      reason: cleanedReason,
+      requestedAt: new Date(),
+      decidedAt: null,
+      decidedBy: null,
+      decisionNote: "",
+      eligibleRefund: eligibleRefundPaise / 100,
+      approvedRefund: null,
+      refundStatus: "not_applicable",
+      originalBooking: undefined,
+    };
 
     await booking.save();
 

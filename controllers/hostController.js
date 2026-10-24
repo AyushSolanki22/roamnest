@@ -1,6 +1,8 @@
 const Home = require("../models/home");
 const mongoose = require("mongoose");
 
+const Booking = require("../models/booking");
+
 const {
   cloudinary,
   uploadImage,
@@ -354,6 +356,276 @@ exports.getHostHomes = async (req, res, next) => {
       isLoggedIn: req.session.isLoggedIn,
       user: req.session.user || {},
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const parseHostDate = (value) => {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const hostNightsBetween = (start, end) => {
+  const startUtc = Date.UTC(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate()
+  );
+
+  const endUtc = Date.UTC(
+    end.getFullYear(),
+    end.getMonth(),
+    end.getDate()
+  );
+
+  return (endUtc - startUtc) / 86400000;
+};
+
+const hostToPaise = (value) =>
+  Math.round((Number(value) + Number.EPSILON) * 100);
+
+const hostFromPaise = (value) => value / 100;
+
+
+
+exports.getEarlyCheckoutRequests = async (req, res, next) => {
+  try {
+    const homes = await Home.find({
+      host: req.session.user.id,
+    }).select("_id name");
+
+    const homeIds = homes.map((home) => home._id);
+
+    const requests = await Booking.find({
+      home: { $in: homeIds },
+      status: "confirmed",
+      "earlyCheckout.requestStatus": "pending",
+    })
+      .populate("home", "name location")
+      .populate("user", "firstName")
+      .sort({ "earlyCheckout.requestedAt": 1 });
+
+    return res.render("host/early-checkout-requests", {
+      requests,
+      pageTitle: "Early Checkout Requests",
+      currPage: "host-homes",
+      isLoggedIn: req.session.isLoggedIn,
+      user: req.session.user || {},
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+exports.postApproveEarlyCheckout = async (req, res, next) => {
+  try {
+    const { bookingId } = req.params;
+    const hostId = req.session.user.id;
+    const refundInput = req.body.approvedRefund;
+
+    if (!mongoose.isValidObjectId(bookingId)) {
+      return res.status(400).send("Invalid booking ID.");
+    }
+
+    if (
+      refundInput === undefined ||
+      String(refundInput).trim() === ""
+    ) {
+      return res.status(400).send("Please enter an approved refund amount.");
+    }
+
+    const requestedRefund = Number(refundInput);
+
+    if (
+      !Number.isFinite(requestedRefund) ||
+      requestedRefund < 0
+    ) {
+      return res.status(400).send("Invalid refund amount.");
+    }
+
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      status: "confirmed",
+      "earlyCheckout.requestStatus": "pending",
+    });
+
+    if (!booking) {
+      return res.status(404).send("Pending request not found.");
+    }
+
+    const home = await Home.findOne({
+      _id: booking.home,
+      host: hostId,
+    });
+
+    if (!home) {
+      return res.status(403).send(
+        "You are not authorized to decide this request."
+      );
+    }
+
+    const refundPaise = hostToPaise(requestedRefund);
+    const eligibleRefundPaise = hostToPaise(
+      booking.earlyCheckout.eligibleRefund
+    );
+
+    if (
+      !Number.isSafeInteger(refundPaise) ||
+      refundPaise < 0 ||
+      refundPaise > eligibleRefundPaise
+    ) {
+      return res.status(400).send(
+        "The approved refund must be between ₹0 and the eligible refund amount."
+      );
+    }
+
+    const now = new Date();
+    const oldCheckIn = parseHostDate(booking.checkIn);
+    const oldCheckOut = parseHostDate(booking.checkOut);
+    const newCheckOut = parseHostDate(
+      booking.earlyCheckout.requestedCheckOut
+    );
+
+    if (!oldCheckIn || !oldCheckOut || !newCheckOut) {
+      return res.status(400).send("Booking dates are invalid.");
+    }
+
+    if (
+      newCheckOut <= oldCheckIn ||
+      newCheckOut >= oldCheckOut ||
+      newCheckOut <= new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    ) {
+      return res.status(400).send(
+        "The requested checkout date is no longer valid."
+      );
+    }
+
+    // Recheck overlap before applying the shorter stay.
+    const conflictingBooking = await Booking.findOne({
+      _id: { $ne: booking._id },
+      home: booking.home,
+      status: "confirmed",
+      checkIn: { $lt: newCheckOut },
+      checkOut: { $gt: oldCheckIn },
+    }).select("_id");
+
+    if (conflictingBooking) {
+      return res.status(409).send(
+        "The adjusted stay conflicts with another confirmed booking."
+      );
+    }
+
+    const newNights = hostNightsBetween(oldCheckIn, newCheckOut);
+
+    if (!Number.isInteger(newNights) || newNights < 1) {
+      return res.status(400).send("Invalid adjusted stay duration.");
+    }
+
+    const baseNightPaise = hostToPaise(booking.basePrice);
+    const extraNightPaise =
+      hostToPaise(booking.extraGuestFee) * booking.extraGuests;
+
+    const newBaseAmountPaise = baseNightPaise * newNights;
+    const newExtraAmountPaise = extraNightPaise * newNights;
+    const newTotalPaise =
+      newBaseAmountPaise + newExtraAmountPaise;
+
+    if (
+      !Number.isSafeInteger(newBaseAmountPaise) ||
+      !Number.isSafeInteger(newExtraAmountPaise) ||
+      !Number.isSafeInteger(newTotalPaise)
+    ) {
+      return res.status(400).send(
+        "Unable to recalculate the adjusted booking price."
+      );
+    }
+
+    // Preserve original details before changing the booking.
+    booking.earlyCheckout.originalBooking = {
+      checkIn: booking.checkIn,
+      checkOut: booking.checkOut,
+      nights: booking.nights,
+      baseAmount: booking.baseAmount,
+      extraGuestAmount: booking.extraGuestAmount,
+      totalPrice: booking.totalPrice,
+    };
+
+    booking.checkOut = newCheckOut;
+    booking.nights = newNights;
+    booking.baseAmount = hostFromPaise(newBaseAmountPaise);
+    booking.extraGuestAmount = hostFromPaise(newExtraAmountPaise);
+    booking.totalPrice = hostFromPaise(newTotalPaise);
+
+    booking.earlyCheckout.requestStatus = "approved";
+    booking.earlyCheckout.decidedAt = new Date();
+    booking.earlyCheckout.decidedBy = hostId;
+    booking.earlyCheckout.approvedRefund = hostFromPaise(refundPaise);
+    booking.earlyCheckout.refundStatus =
+      refundPaise > 0
+        ? "approved_pending_payment"
+        : "not_applicable";
+
+    await booking.save();
+
+    return res.redirect("/host/early-checkout-requests");
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+exports.postRejectEarlyCheckout = async (req, res, next) => {
+  try {
+    const { bookingId } = req.params;
+    const hostId = req.session.user.id;
+
+    if (!mongoose.isValidObjectId(bookingId)) {
+      return res.status(400).send("Invalid booking ID.");
+    }
+
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      status: "confirmed",
+      "earlyCheckout.requestStatus": "pending",
+    });
+
+    if (!booking) {
+      return res.status(404).send("Pending request not found.");
+    }
+
+    const home = await Home.findOne({
+      _id: booking.home,
+      host: hostId,
+    });
+
+    if (!home) {
+      return res.status(403).send(
+        "You are not authorized to decide this request."
+      );
+    }
+
+    booking.earlyCheckout.requestStatus = "rejected";
+    booking.earlyCheckout.decidedAt = new Date();
+    booking.earlyCheckout.decidedBy = hostId;
+    booking.earlyCheckout.decisionNote =
+      typeof req.body.decisionNote === "string"
+        ? req.body.decisionNote.trim().slice(0, 1000)
+        : "";
+    booking.earlyCheckout.approvedRefund = null;
+    booking.earlyCheckout.refundStatus = "not_applicable";
+
+    await booking.save();
+
+    return res.redirect("/host/early-checkout-requests");
   } catch (error) {
     next(error);
   }

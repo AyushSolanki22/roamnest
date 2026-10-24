@@ -67,4 +67,22 @@ hostRouter.post(
   hostController.postDeleteHome
 );
 
+// Review early-checkout requests
+hostRouter.get(
+  "/early-checkout-requests",
+  hostController.getEarlyCheckoutRequests
+);
+
+// Approve early checkout and set the refund amount
+hostRouter.post(
+  "/early-checkout-requests/:bookingId/approve",
+  hostController.postApproveEarlyCheckout
+);
+
+// Reject early checkout
+hostRouter.post(
+  "/early-checkout-requests/:bookingId/reject",
+  hostController.postRejectEarlyCheckout
+);
+
 module.exports = hostRouter;

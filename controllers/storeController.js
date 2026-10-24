@@ -1,5 +1,7 @@
 const Home = require("../models/home");
 const User = require("../models/user");
+const Review = require("../models/review");
+const Booking = require("../models/booking");
 
 const mongoose = require("mongoose");
 
@@ -229,13 +231,83 @@ exports.getHomeDetails = async (req, res, next) => {
         ? Math.min(2, maxGuests)
         : Number(home.includedGuests);
 
+    // Load actual reviews, with the reviewer's name.
+    const reviews = await Review.find({ home: homeId })
+      .populate("user", "firstName lastName")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Calculate the average from real reviews.
+    const ratingSummary = await Review.aggregate([
+      {
+        $match: {
+          home: new mongoose.Types.ObjectId(homeId),
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: "$rating" },
+          totalReviews: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const averageRating =
+      ratingSummary.length > 0
+        ? Math.round(ratingSummary[0].averageRating * 10) / 10
+        : 0;
+
+    const reviewCount =
+      ratingSummary.length > 0
+        ? ratingSummary[0].totalReviews
+        : 0;
+
+    // Find whether the logged-in guest has a completed,
+    // non-cancelled booking that has not already been reviewed.
+    let eligibleBooking = null;
+
+    const userId = req.session?.user?.id;
+
+    if (
+  userId &&
+  mongoose.isValidObjectId(userId) &&
+  String(home.host) !== String(userId)
+) {
+      const now = new Date();
+
+      const reviewedBookingIds = await Review.find({
+        home: homeId,
+        user: userId,
+      }).distinct("booking");
+
+      eligibleBooking = await Booking.findOne({
+        home: homeId,
+        user: userId,
+        status: "confirmed",
+        checkOut: { $lte: now },
+        _id: { $nin: reviewedBookingIds },
+      })
+        .sort({ checkOut: -1 })
+        .select("_id checkOut")
+        .lean();
+    }
+
     return res.render("store/home-detail", {
       home,
       includedGuests,
+      reviews,
+      averageRating,
+      reviewCount,
+      eligibleBooking,
       pageTitle: "Home Detail",
       currPage: "Home",
       isLoggedIn: req.session?.isLoggedIn || false,
       user: req.session?.user || {},
+      reviewMessage:
+  typeof req.query.review === "string"
+    ? req.query.review
+    : "",
     });
   } catch (error) {
     return next(error);

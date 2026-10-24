@@ -1,0 +1,648 @@
+
+<%- include("../partials/head") %>
+</head>
+<body class="rn-body">
+  <%- include("../partials/header") %>
+
+  <style>
+    .ec-page {
+      max-width: 1120px;
+      margin: 42px auto 72px;
+      padding: 0 24px;
+      color: #302820;
+    }
+
+    .ec-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+
+    .ec-eyebrow {
+      color: #87694f;
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin: 0 0 10px;
+    }
+
+    .ec-title {
+      font-size: clamp(28px, 4vw, 38px);
+      letter-spacing: -1.2px;
+      line-height: 1.15;
+      margin: 0;
+    }
+
+    .ec-subtitle {
+      color: #796e63;
+      line-height: 1.7;
+      margin: 12px 0 0;
+      max-width: 560px;
+    }
+
+    .ec-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 16px;
+      border: 1px solid #e4d8ca;
+      border-radius: 999px;
+      color: #634a37;
+      background: #fffdfb;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 650;
+      white-space: nowrap;
+      transition: background .2s, border-color .2s;
+    }
+
+    .ec-back:hover {
+      background: #f1e7dc;
+      border-color: #d4c0ad;
+    }
+
+    .ec-section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: 30px 0 16px;
+    }
+
+    .ec-section-heading h2 {
+      font-size: 19px;
+      margin: 0;
+    }
+
+    .ec-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 30px;
+      height: 28px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: #eee2d5;
+      color: #74553d;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .ec-list {
+      display: grid;
+      gap: 22px;
+    }
+
+    .ec-card {
+      overflow: hidden;
+      background: #fffdfb;
+      border: 1px solid #e7ddd2;
+      border-radius: 20px;
+      box-shadow: 0 8px 28px rgba(67, 47, 29, .045);
+    }
+
+    .ec-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 24px 26px;
+      border-bottom: 1px solid #eee5dc;
+    }
+
+    .ec-property-label {
+      color: #897a6c;
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin: 0 0 7px;
+    }
+
+    .ec-property-name {
+      font-size: 22px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+      margin: 0;
+    }
+
+    .ec-guest {
+      color: #796e63;
+      font-size: 14px;
+      margin: 7px 0 0;
+    }
+
+    .ec-status {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 11px;
+      border: 1px solid #efdfb8;
+      border-radius: 999px;
+      background: #fff7e5;
+      color: #886324;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .ec-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #c48a2c;
+    }
+
+    .ec-card-body {
+      padding: 24px 26px 26px;
+    }
+
+    .ec-details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .ec-detail {
+      min-width: 0;
+      padding: 15px 16px;
+      background: #f8f3ed;
+      border: 1px solid #f0e7dd;
+      border-radius: 13px;
+    }
+
+    .ec-detail-label {
+      display: block;
+      color: #817469;
+      font-size: 12px;
+      margin-bottom: 7px;
+    }
+
+    .ec-detail-value {
+      display: block;
+      color: #352b22;
+      font-size: 15px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .ec-reason {
+      padding: 17px 18px;
+      border-left: 3px solid #b99a7b;
+      background: #fbf8f4;
+      border-radius: 0 12px 12px 0;
+      margin-bottom: 22px;
+    }
+
+    .ec-reason-label {
+      color: #817469;
+      font-size: 12px;
+      font-weight: 700;
+      margin: 0 0 7px;
+    }
+
+    .ec-reason-text {
+      color: #40362d;
+      line-height: 1.65;
+      margin: 0;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .ec-refund-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 20px;
+      border: 1px solid #dce7d6;
+      border-radius: 15px;
+      background: #f2f7ef;
+      margin-bottom: 26px;
+    }
+
+    .ec-refund-label {
+      color: #59704f;
+      font-size: 13px;
+      margin: 0 0 6px;
+    }
+
+    .ec-refund-help {
+      color: #73836b;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .ec-refund-amount {
+      color: #344c2d;
+      font-size: clamp(24px, 3vw, 31px);
+      font-weight: 800;
+      letter-spacing: -.8px;
+      white-space: nowrap;
+    }
+
+    .ec-form-grid {
+      display: grid;
+      grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+      gap: 22px;
+    }
+
+    .ec-form-section {
+      min-width: 0;
+      padding: 20px;
+      border: 1px solid #e9dfd5;
+      border-radius: 15px;
+      background: #fff;
+    }
+
+    .ec-form-section h3 {
+      font-size: 15px;
+      margin: 0 0 7px;
+    }
+
+    .ec-form-description {
+      color: #85796d;
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 0 0 15px;
+    }
+
+    .ec-field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .ec-input,
+    .ec-textarea {
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
+      padding: 12px 13px;
+      border: 1px solid #d9ccbe;
+      border-radius: 10px;
+      background: #fffdfb;
+      color: #302820;
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .ec-input:focus,
+    .ec-textarea:focus {
+      border-color: #8a6a4f;
+      box-shadow: 0 0 0 3px rgba(138, 106, 79, .13);
+    }
+
+    .ec-textarea {
+      min-height: 112px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .ec-field-help {
+      color: #85796d;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 9px 0 0;
+    }
+
+    .ec-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+      padding-top: 22px;
+      border-top: 1px solid #eee5dc;
+    }
+
+    .ec-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 11px 19px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: transform .15s, background .2s, box-shadow .2s;
+    }
+
+    .ec-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .ec-button:focus-visible {
+      outline: 3px solid rgba(138, 106, 79, .3);
+      outline-offset: 3px;
+    }
+
+    .ec-button-approve {
+      color: #fff;
+      background: #806247;
+      box-shadow: 0 4px 10px rgba(88, 61, 39, .12);
+    }
+
+    .ec-button-approve:hover {
+      background: #6b503b;
+    }
+
+    .ec-button-reject {
+      color: #a0443a;
+      background: #fff;
+      border-color: #e6c9c4;
+    }
+
+    .ec-button-reject:hover {
+      background: #fff4f2;
+    }
+
+    .ec-empty {
+      padding: 52px 24px;
+      border: 1px dashed #d9cabb;
+      border-radius: 20px;
+      background: rgba(255, 253, 251, .8);
+      text-align: center;
+    }
+
+    .ec-empty-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 18px;
+      border-radius: 18px;
+      background: #eee3d8;
+      color: #806247;
+      font-size: 26px;
+    }
+
+    .ec-empty h2 {
+      margin: 0 0 9px;
+      font-size: 21px;
+    }
+
+    .ec-empty p {
+      max-width: 400px;
+      margin: 0 auto;
+      color: #817469;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 680px) {
+      .ec-page {
+        margin-top: 28px;
+        padding: 0 15px;
+      }
+
+      .ec-top {
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .ec-card-header,
+      .ec-card-body {
+        padding: 19px;
+      }
+
+      .ec-card-header {
+        flex-direction: column;
+      }
+
+      .ec-details,
+      .ec-form-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .ec-refund-summary {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .ec-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+      }
+
+      .ec-button {
+        width: 100%;
+      }
+    }
+  </style>
+
+  <main class="ec-page">
+    <header class="ec-top">
+      <div>
+        <p class="ec-eyebrow">Host dashboard</p>
+        <h1 class="ec-title">Early checkout requests</h1>
+        <p class="ec-subtitle">
+          Review guest requests, choose a fair refund amount, and make your decision.
+        </p>
+      </div>
+
+      <a class="ec-back" href="/host/host-homes">
+        <span aria-hidden="true">←</span>
+        Back to your homes
+      </a>
+    </header>
+
+    <% if (!requests || requests.length === 0) { %>
+      <section class="ec-empty">
+        <div class="ec-empty-icon" aria-hidden="true">✓</div>
+        <h2>You're all caught up</h2>
+        <p>
+          There are no pending early-checkout requests right now.
+          New guest requests will appear here.
+        </p>
+      </section>
+    <% } else { %>
+      <div class="ec-section-heading">
+        <h2>Requests awaiting your decision</h2>
+        <span class="ec-count"><%= requests.length %></span>
+      </div>
+
+      <div class="ec-list">
+        <% requests.forEach(booking => { %>
+          <article class="ec-card">
+            <header class="ec-card-header">
+              <div>
+                <p class="ec-property-label">Property</p>
+                <h2 class="ec-property-name">
+                  <%= booking.home ? booking.home.name : "Unavailable property" %>
+                </h2>
+                <p class="ec-guest">
+                  Guest:
+                  <strong>
+                    <%= booking.user && booking.user.firstName
+                      ? booking.user.firstName
+                      : "Guest" %>
+                  </strong>
+                </p>
+              </div>
+
+              <span class="ec-status">
+                <span class="ec-status-dot" aria-hidden="true"></span>
+                Awaiting decision
+              </span>
+            </header>
+
+            <div class="ec-card-body">
+              <div class="ec-details">
+                <div class="ec-detail">
+                  <span class="ec-detail-label">Original checkout</span>
+                  <strong class="ec-detail-value">
+                    <%= new Date(booking.checkOut).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric"
+                    }) %>
+                  </strong>
+                </div>
+
+                <div class="ec-detail">
+                  <span class="ec-detail-label">Requested checkout</span>
+                  <strong class="ec-detail-value">
+                    <%= new Date(
+                      booking.earlyCheckout.requestedCheckOut
+                    ).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric"
+                    }) %>
+                  </strong>
+                </div>
+              </div>
+
+              <section class="ec-reason" aria-label="Guest's reason">
+                <p class="ec-reason-label">Reason for early checkout</p>
+                <p class="ec-reason-text"><%= booking.earlyCheckout.reason || "No reason provided." %></p>
+              </section>
+
+              <section class="ec-refund-summary" aria-label="Eligible refund">
+                <div>
+                  <p class="ec-refund-label">Maximum eligible refund</p>
+                  <p class="ec-refund-help">
+                    You can approve any amount from ₹0 up to this limit.
+                  </p>
+                </div>
+
+                <strong class="ec-refund-amount">
+                  ₹<%= Number(
+                    booking.earlyCheckout.eligibleRefund
+                  ).toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  }) %>
+                </strong>
+              </section>
+
+              <div class="ec-form-grid">
+                <section class="ec-form-section">
+                  <h3>Approve refund</h3>
+                  <p class="ec-form-description">
+                    Set the amount to approve. It cannot exceed the eligible refund.
+                  </p>
+
+                  <form
+                    id="approve-<%= booking._id %>"
+                    action="/host/early-checkout-requests/<%= booking._id %>/approve"
+                    method="POST"
+                  >
+                    <label
+                      class="ec-field-label"
+                      for="refund-<%= booking._id %>"
+                    >
+                      Approved refund (₹)
+                    </label>
+
+                    <input
+                      class="ec-input"
+                      id="refund-<%= booking._id %>"
+                      type="number"
+                      name="approvedRefund"
+                      min="0"
+                      max="<%= booking.earlyCheckout.eligibleRefund %>"
+                      step="0.01"
+                      value="<%= booking.earlyCheckout.eligibleRefund %>"
+                      required
+                    />
+
+                    <p class="ec-field-help">
+                      Check the amount before approving this request.
+                    </p>
+                  </form>
+                </section>
+
+                <section class="ec-form-section">
+                  <h3>Decision note</h3>
+                  <p class="ec-form-description">
+                    Optional context for your decision.
+                  </p>
+
+                  <form
+                    id="reject-<%= booking._id %>"
+                    action="/host/early-checkout-requests/<%= booking._id %>/reject"
+                    method="POST"
+                    onsubmit="return confirm('Reject this early-checkout request?');"
+                  >
+                    <label
+                      class="ec-field-label"
+                      for="note-<%= booking._id %>"
+                    >
+                      Note for the guest (optional)
+                    </label>
+
+                    <textarea
+                      class="ec-textarea"
+                      id="note-<%= booking._id %>"
+                      name="decisionNote"
+                      maxlength="1000"
+                      rows="3"
+                      placeholder="Write a short explanation..."
+                    ></textarea>
+                  </form>
+                </section>
+              </div>
+
+              <div class="ec-actions">
+                <button
+                  class="ec-button ec-button-reject"
+                  type="submit"
+                  form="reject-<%= booking._id %>"
+                >
+                  Reject request
+                </button>
+
+                <button
+                  class="ec-button ec-button-approve"
+                  type="submit"
+                  form="approve-<%= booking._id %>"
+                >
+                  Approve early checkout
+                  <span aria-hidden="true">→</span>
+                </button>
+              </div>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  </main>
+</body>
+</html>

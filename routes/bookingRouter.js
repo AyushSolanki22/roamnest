@@ -43,4 +43,11 @@ bookingRouter.post(
   bookingController.postCancelBooking
 );
 
+bookingRouter.post(
+  "/bookings/:bookingId/early-checkout",
+  requireLogin,
+  bookingController.postRequestEarlyCheckout
+);
+
+
 module.exports = bookingRouter;

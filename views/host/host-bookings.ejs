@@ -1,0 +1,78 @@
+<%- include("../partials/head") %>
+</head>
+<body class="rn-body">
+  <%- include("../partials/header") %>
+  <main class="rn-page-shell rn-host-bookings">
+    <header class="rn-page-intro rn-host-intro">
+      <p class="rn-eyebrow">Hosting overview</p>
+      <h1>Your bookings<span>.</span></h1>
+      <p class="rn-intro-copy">Track guest stays across your properties, review booking status, and keep an eye on booking value and approved refunds.</p>
+    </header>
+
+    <section class="rn-host-stat-grid" aria-label="Booking summary">
+      <article class="rn-host-stat"><span>Total bookings</span><strong><%= stats.total %></strong></article>
+      <article class="rn-host-stat"><span>Confirmed</span><strong><%= stats.confirmed %></strong></article>
+      <article class="rn-host-stat"><span>Upcoming stays</span><strong><%= stats.upcoming %></strong></article>
+      <article class="rn-host-stat"><span>Cancelled</span><strong><%= stats.cancelled %></strong></article>
+      <article class="rn-host-stat rn-host-stat-wide"><span>Confirmed booking value</span><strong>₹<%= Number(stats.confirmedValue).toLocaleString("en-IN", { maximumFractionDigits: 2 }) %></strong><small>Booking totals, not accounting profit or payout.</small></article>
+      <article class="rn-host-stat rn-host-stat-wide"><span>Approved early-checkout refunds</span><strong>₹<%= Number(stats.approvedRefunds).toLocaleString("en-IN", { maximumFractionDigits: 2 }) %></strong><small>Includes refunds awaiting payment and marked refunded.</small></article>
+    </section>
+
+    <section class="rn-host-booking-section">
+      <div class="rn-host-booking-heading">
+        <div><p class="rn-eyebrow">Guest stays</p><h2>Booking information <span class="rn-host-count"><%= bookings.length %></span></h2></div>
+        <a href="/host/host-homes" class="rn-button rn-button-outline rn-button-small">Back to your homes</a>
+      </div>
+      <form class="rn-host-booking-filters" action="/host/bookings" method="get">
+        <label>Property
+          <select name="home">
+            <option value="all" <%= selectedHomeId === "all" ? "selected" : "" %>>All properties</option>
+            <% homes.forEach(home => { %><option value="<%= home._id %>" <%= selectedHomeId === String(home._id) ? "selected" : "" %>><%= home.name %></option><% }) %>
+          </select>
+        </label>
+        <label>Booking status
+          <select name="status">
+            <% [{value:"all",label:"All bookings"},{value:"upcoming",label:"Upcoming stays"},{value:"confirmed",label:"Confirmed"},{value:"past",label:"Past stays"},{value:"cancelled",label:"Cancelled"}].forEach(option => { %>
+              <option value="<%= option.value %>" <%= selectedStatus === option.value ? "selected" : "" %>><%= option.label %></option>
+            <% }) %>
+          </select>
+        </label>
+        <button class="rn-button rn-button-primary" type="submit">Apply filters</button>
+      </form>
+
+      <% if (!bookings.length) { %>
+        <section class="rn-empty-state rn-host-booking-empty"><div class="rn-empty-icon" aria-hidden="true">⌂</div><h3>No bookings found</h3><p>Try another property or status filter. New bookings for your properties will appear here.</p><a href="/host/bookings" class="rn-button rn-button-outline">Clear filters</a></section>
+      <% } else { %>
+        <div class="rn-host-booking-list">
+          <% bookings.forEach(booking => { %>
+            <article class="rn-host-booking-card">
+              <div class="rn-host-booking-property">
+                <% if (booking.home && booking.home.photo) { %><img src="<%= booking.home.photo %>" alt="<%= booking.home.name %>" loading="lazy" /><% } else { %><div class="rn-host-booking-image-fallback">⌂</div><% } %>
+                <div><h3><%= booking.home ? booking.home.name : "Property unavailable" %></h3><p><%= booking.home ? booking.home.location : "This listing may have been removed" %></p<span class="rn-booking-status rn-booking-status-<%= booking.status %>">
+  <%= booking.status
+    ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1)
+    : "Unknown" %>
+</span></div>
+              </div>
+              <div class="rn-host-booking-details">
+                <div><span>Guest</span><strong><%= booking.user ? [booking.user.firstName, booking.user.lastName].filter(Boolean).join(" ") : "Guest account unavailable" %></strong></div>
+                <div><span>Check-in</span><strong><%= new Date(booking.checkIn).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" }) %></strong></div>
+                <div><span>Check-out</span><strong><%= new Date(booking.checkOut).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" }) %></strong></div>
+                <div><span>Guests / nights</span><strong><%= booking.guests %> guests · <%= booking.nights %> nights</strong></div>
+                <div><span>Booking total</span><strong>₹<%= Number(booking.totalPrice || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 }) %></strong></div>
+                <% if (booking.earlyCheckout && booking.earlyCheckout.requestStatus && booking.earlyCheckout.requestStatus !== "none") { %>
+                  <div><span>Early checkout</span><strong><%= booking.earlyCheckout.requestStatus.replaceAll("_", " ") %></strong></div>
+                <% } %>
+                <% if (booking.earlyCheckout && booking.earlyCheckout.approvedRefund !== null && booking.earlyCheckout.approvedRefund !== undefined) { %>
+                  <div><span>Approved refund</span><strong>₹<%= Number(booking.earlyCheckout.approvedRefund).toLocaleString("en-IN", { maximumFractionDigits: 2 }) %></strong></div>
+                <% } %>
+              </div>
+              <% if (booking.earlyCheckout && booking.earlyCheckout.requestStatus === "pending") { %><p class="rn-host-booking-notice">This booking has a pending early-checkout request. <a href="/host/early-checkout-requests">Review request</a></p><% } %>
+            </article>
+          <% }) %>
+        </div>
+      <% } %>
+    </section>
+  </main>
+</body>
+</html>

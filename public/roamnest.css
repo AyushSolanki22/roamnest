@@ -1134,3 +1134,54 @@ select {
     transition: none;
   }
 }
+
+/* Phase 5: host booking overview */
+.rn-host-bookings { padding-top: 42px; }
+.rn-host-stat-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin:0 0 36px; }
+.rn-host-stat { min-width:0; padding:19px; border:1px solid var(--rn-line); border-radius:17px; background:#fffdfa; }
+.rn-host-stat span,.rn-host-booking-details span { display:block; color:var(--rn-muted); font-size:12px; }
+.rn-host-stat strong { display:block; margin-top:8px; font-family:"Playfair Display",Georgia,serif; font-size:clamp(22px,2.4vw,31px); overflow-wrap:anywhere; }
+.rn-host-stat small { display:block; margin-top:6px; color:var(--rn-muted); font-size:11px; line-height:1.5; }
+.rn-host-stat-wide { grid-column:span 2; }
+.rn-host-booking-heading { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:18px; }
+.rn-host-booking-heading h2 { display:flex; align-items:center; gap:10px; margin:0; font:600 27px "Playfair Display",Georgia,serif; }
+.rn-host-booking-filters { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) auto; align-items:end; gap:13px; padding:17px; margin-bottom:20px; border:1px solid var(--rn-line); border-radius:17px; background:#fffdfa; }
+.rn-host-booking-filters label { display:grid; gap:7px; color:var(--rn-muted); font-size:12px; font-weight:600; }
+.rn-host-booking-filters select { width:100%; min-height:43px; padding:9px 11px; border:1px solid var(--rn-line); border-radius:10px; background:white; color:var(--rn-ink); font:inherit; }
+.rn-host-booking-list { display:grid; gap:15px; }
+.rn-host-booking-card { min-width:0; padding:19px; border:1px solid var(--rn-line); border-radius:18px; background:#fffdfa; }
+.rn-host-booking-property { display:flex; align-items:center; gap:14px; min-width:0; padding-bottom:15px; border-bottom:1px solid #f0e9df; }
+.rn-host-booking-property img,.rn-host-booking-image-fallback { flex:0 0 88px; width:88px; height:76px; object-fit:cover; border-radius:11px; background:var(--rn-soft); }
+.rn-host-booking-image-fallback { display:grid; place-items:center; font-size:26px; color:var(--rn-accent-dark); }
+.rn-host-booking-property h3 { margin:0 0 4px; overflow-wrap:anywhere; font-size:17px; }
+.rn-host-booking-property p { margin:0 0 8px; color:var(--rn-muted); font-size:12px; }
+.rn-booking-status { display:inline-flex; padding:4px 9px; border-radius:999px; font-size:11px; font-weight:700; text-transform:capitalize; }
+.rn-booking-status-confirmed { background:#e7f4e9; color:#28643b; }
+.rn-booking-status-cancelled { background:#fff0eb; color:#9b493b; }
+.rn-host-booking-details { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:17px 12px; padding-top:16px; }
+.rn-host-booking-details strong { display:block; margin-top:5px; font-size:13px; overflow-wrap:anywhere; }
+.rn-host-booking-notice { margin:14px 0 0; padding:11px 13px; border-radius:10px; background:#fff4df; color:#78531e; font-size:12px; }
+.rn-host-booking-notice a { font-weight:700; text-decoration:underline; }
+.rn-host-booking-empty { margin-top:16px; }
+@media (max-width:700px) {
+  .rn-host-bookings { padding-top:25px; }
+  .rn-host-stat-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin-bottom:27px; }
+  .rn-host-stat { padding:14px; border-radius:14px; }
+  .rn-host-stat strong { font-size:23px; }
+  .rn-host-stat-wide { grid-column:span 2; }
+  .rn-host-booking-heading { align-items:flex-start; flex-direction:column; }
+  .rn-host-booking-heading h2 { font-size:23px; }
+  .rn-host-booking-filters { grid-template-columns:1fr; padding:13px; }
+  .rn-host-booking-filters .rn-button { width:100%; }
+  .rn-host-booking-card { padding:14px; border-radius:15px; }
+  .rn-host-booking-property { align-items:flex-start; gap:11px; }
+  .rn-host-booking-property img,.rn-host-booking-image-fallback { flex-basis:72px; width:72px; height:70px; }
+  .rn-host-booking-property h3 { font-size:15px; }
+  .rn-host-booking-details { grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 10px; }
+  .rn-host-booking-details strong { font-size:12px; }
+}
+@media (max-width:360px) {
+  .rn-host-booking-details { grid-template-columns:1fr; }
+  .rn-host-booking-property img,.rn-host-booking-image-fallback { flex-basis:62px; width:62px; height:64px; }
+}
+

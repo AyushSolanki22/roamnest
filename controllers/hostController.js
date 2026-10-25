@@ -111,7 +111,6 @@ exports.postAddHome = async (req, res, next) => {
       maxGuests,
       extraGuestFee,
       houseLocation,
-      houseRating,
       description,
     } = req.body || {};
 
@@ -147,7 +146,6 @@ exports.postAddHome = async (req, res, next) => {
       maxGuests: Number(maxGuests),
       extraGuestFee: Number(extraGuestFee),
       location: houseLocation,
-      rating: Number(houseRating),
 
       photo: photoResult.secure_url,
       photoPublicId: photoResult.public_id,
@@ -199,7 +197,6 @@ exports.postEditHome = async (req, res, next) => {
       maxGuests,
       extraGuestFee,
       houseLocation,
-      houseRating,
       description,
     } = req.body || {};
 
@@ -243,7 +240,6 @@ exports.postEditHome = async (req, res, next) => {
     existingHome.maxGuests = Number(maxGuests);
     existingHome.extraGuestFee = Number(extraGuestFee);
     existingHome.location = houseLocation;
-    existingHome.rating = Number(houseRating);
     existingHome.description = description || "";
 
     // Update photo only if a replacement was uploaded
@@ -392,6 +388,144 @@ const hostToPaise = (value) =>
   Math.round((Number(value) + Number.EPSILON) * 100);
 
 const hostFromPaise = (value) => value / 100;
+
+// --------------------------------------------------
+// HOST BOOKING DASHBOARD
+// --------------------------------------------------
+
+
+exports.getHostBookings = async (req, res, next) => {
+  try {
+    const hostId = req.session.user.id;
+    const selectedHomeId = req.query.home || "all";
+    const selectedStatus = req.query.status || "all";
+
+    // Fetch only properties owned by this host.
+    const homes = await Home.find({ host: hostId })
+      .select("_id name location photo price");
+
+    const homeIds = homes.map((home) => home._id);
+
+    // Fetch bookings only for this host's properties.
+    const allBookings = await Booking.find({
+      home: { $in: homeIds },
+    })
+      .populate("home", "name location photo")
+      .populate("user", "firstName")
+      .sort({ checkIn: -1 });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const isFutureCheckout = (booking) =>
+      booking.checkOut && new Date(booking.checkOut) > today;
+
+    const isPastCheckout = (booking) =>
+      booking.checkOut && new Date(booking.checkOut) <= today;
+
+    // Calculate summary statistics from all host bookings.
+    const confirmed = allBookings.filter(
+      (b) => b.status === "confirmed"
+    );
+
+    const cancelled = allBookings.filter(
+      (b) => b.status === "cancelled"
+    );
+
+    const upcoming = confirmed.filter(isFutureCheckout);
+
+    // Safely handle numeric values and currency-formatted strings.
+    const toAmount = (value) => {
+      if (typeof value === "number") {
+        return Number.isFinite(value) ? value : 0;
+      }
+
+      const parsed = Number(
+        String(value ?? "").replace(/[₹,\s]/g, "")
+      );
+
+      return Number.isFinite(parsed) ? parsed : 0;
+    };
+
+    const totalRevenue = confirmed.reduce(
+      (sum, booking) => sum + toAmount(booking.totalPrice),
+      0
+    );
+
+    const totalRefunds = allBookings.reduce((sum, booking) => {
+      const refund = toAmount(booking.approvedRefund);
+
+      return sum + refund;
+    }, 0);
+
+    // Apply the selected property filter.
+    let bookings = allBookings;
+
+    if (selectedHomeId !== "all") {
+      bookings = bookings.filter(
+        (booking) =>
+          booking.home &&
+          String(booking.home._id) === selectedHomeId
+      );
+    }
+
+    // Apply the selected status/stay filter.
+    if (selectedStatus === "upcoming") {
+      bookings = bookings.filter(
+        (booking) =>
+          booking.status === "confirmed" &&
+          isFutureCheckout(booking)
+      );
+    } else if (selectedStatus === "confirmed") {
+      bookings = bookings.filter(
+        (booking) => booking.status === "confirmed"
+      );
+    } else if (selectedStatus === "past") {
+      bookings = bookings.filter(
+        (booking) =>
+          booking.status === "confirmed" &&
+          isPastCheckout(booking)
+      );
+    } else if (selectedStatus === "cancelled") {
+      bookings = bookings.filter(
+        (booking) => booking.status === "cancelled"
+      );
+    }
+
+    return res.render("host/host-bookings", {
+      bookings,
+      homes,
+      stats: {
+  total: allBookings.length,
+  confirmed: confirmed.length,
+  upcoming: upcoming.length,
+  cancelled: cancelled.length,
+
+  confirmedValue: totalRevenue,
+
+  approvedRefunds: allBookings.reduce((sum, booking) => {
+    const refund = Number(
+      booking.earlyCheckout?.approvedRefund ?? 0
+    );
+
+    return sum + (
+      Number.isFinite(refund) && refund > 0 ? refund : 0
+    );
+  }, 0),
+},
+      selectedHomeId,
+      selectedStatus,
+      totalRevenue,
+      totalRefunds,
+      pageTitle: "Host Booking Dashboard",
+      currPage: "hostBookings",
+      isLoggedIn: req.session.isLoggedIn,
+      user: req.session.user || {},
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 

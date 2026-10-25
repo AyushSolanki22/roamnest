@@ -28,7 +28,7 @@
             <article class="rn-property-card">
               <a class="rn-property-image-link" href="/homes/<%= home._id %>" aria-label="View <%= home.name %>"><img src="<%= home.photo %>" alt="<%= home.name %>" class="rn-property-image" loading="lazy" /><span class="rn-image-tag">Featured stay</span></a>
               <div class="rn-property-content">
-                <div class="rn-property-title-row"><div><p class="rn-property-location">⌖ <%= home.location %></p><h3><a href="/homes/<%= home._id %>"><%= home.name %></a></h3></div><span class="rn-rating">★ <%= Number(home.rating).toFixed(1) %></span></div>
+                <div class="rn-property-title-row"><div><p class="rn-property-location">⌖ <%= home.location %></p><h3><a href="/homes/<%= home._id %>"><%= home.name %></a></h3></div><span class="rn-rating"><%= home.reviewCount > 0 ? `★ ${home.averageRating.toFixed(1)} (${home.reviewCount})` : "New listing" %></span></div>
                 <div class="rn-property-meta"><span>Up to <%= home.maxGuests %> guests</span></div>
                 <div class="rn-property-footer"><p class="rn-price"><strong>₹<%= Number(home.price).toLocaleString('en-IN') %></strong><span> / night</span></p><a class="rn-details-link" href="/homes/<%= home._id %>">View stay ↗</a></div>
               </div>

@@ -12,6 +12,19 @@ const MAX_PRICE = 10000000;
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+async function attachGuestRatings(homes) {
+  if (!homes.length) return homes;
+  const summaries = await Review.aggregate([
+    { $match: { home: { $in: homes.map((home) => home._id) } } },
+    { $group: { _id: "$home", averageRating: { $avg: "$rating" }, reviewCount: { $sum: 1 } } },
+  ]);
+  const byHome = new Map(summaries.map((item) => [String(item._id), item]));
+  return homes.map((home) => {
+    const summary = byHome.get(String(home._id));
+    return { ...home, averageRating: summary ? Math.round(summary.averageRating * 10) / 10 : null, reviewCount: summary ? summary.reviewCount : 0 };
+  });
+}
+
 const parseOptionalNumber = (value, { min = 0, max = MAX_PRICE, integer = false } = {}) => {
   if (value === undefined || value === null || String(value).trim() === "") return null;
   const parsed = Number(value);
@@ -52,14 +65,21 @@ exports.getHomes = async (req, res, next) => {
     }
 
     const sortOptions = {
-      recommended: { rating: -1, _id: -1 },
       "price-asc": { price: 1, _id: -1 },
       "price-desc": { price: -1, _id: -1 },
-      "rating-desc": { rating: -1, _id: -1 },
       newest: { _id: -1 },
     };
 
-    const registeredHomes = await Home.find(filter).sort(sortOptions[sort]).lean();
+    let registeredHomes = await Home.find(filter)
+      .sort(sortOptions[sort] || { _id: -1 })
+      .lean();
+    registeredHomes = await attachGuestRatings(registeredHomes);
+    if (sort === "rating-desc" || sort === "recommended") {
+      registeredHomes.sort((a, b) =>
+        (b.averageRating ?? -1) - (a.averageRating ?? -1) ||
+        String(b._id).localeCompare(String(a._id))
+      );
+    }
     const searchState = {
       q: search,
       minPrice: minPrice === null ? "" : String(minPrice),
@@ -86,7 +106,7 @@ exports.getHomes = async (req, res, next) => {
 
 exports.getIndex = async (req, res, next) => {
   try {
-    const registeredHomes = await Home.find();
+    const registeredHomes = await attachGuestRatings(await Home.find().lean());
 
     return res.render("store/index", {
       registeredHomes,
@@ -115,7 +135,7 @@ exports.getFavourites = async (req, res, next) => {
       return res.redirect("/login");
     }
 
-    const favouriteHomes = user.favourites.filter(Boolean);
+    const favouriteHomes = await attachGuestRatings(user.favourites.filter(Boolean).map((home) => home.toObject()));
 
     return res.render("store/favourite-list", {
       favouriteHomes,

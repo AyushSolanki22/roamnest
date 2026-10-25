@@ -55,3 +55,17 @@ h2 {
   color: #333;
   font-size: 2rem;
 }
+
+
+/* Prevent mouse-wheel scrolling from changing numeric inputs */
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+/* Hide number input spinners in Chromium-based browsers */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

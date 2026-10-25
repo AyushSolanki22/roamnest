@@ -10,6 +10,7 @@
         <% } %>
         <% if (isLoggedIn && user && user.userType === 'host') { %>
           <a href="/host/host-homes" class="rn-nav-link <%= currPage === 'host-homes' ? 'is-active' : '' %>">Your homes</a>
+          <a href="/host/bookings" class="rn-nav-link <%= currPage === 'host-bookings' ? 'is-active' : '' %>">Bookings</a>
           <a href="/host/add-home" class="rn-nav-link <%= currPage === 'addHome' ? 'is-active' : '' %>">Add a stay</a>
         <% } %>
       </div>

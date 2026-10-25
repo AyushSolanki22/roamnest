@@ -1404,7 +1404,7 @@
                         </span>
 
                         <span>
-                            <%= home.rating %> / 5
+                            <%= reviewCount > 0 ? averageRating.toFixed(1) + " / 5" : "New listing" %>
                         </span>
 
                     </div>
@@ -1479,11 +1479,11 @@
                             <div>
 
                                 <div class="rating-number">
-                                    <%= home.rating %> / 5
+                                    <%= reviewCount > 0 ? averageRating.toFixed(1) + " / 5" : "New listing" %>
                                 </div>
 
                                 <span class="rating-label">
-                                    Property rating
+                                    <%= reviewCount > 0 ? `${reviewCount} guest ${reviewCount === 1 ? "review" : "reviews"}` : "No guest reviews yet" %>
                                 </span>
 
                             </div>
@@ -1615,7 +1615,7 @@
                                 </div>
 
                                 <div class="info-value">
-                                    ★ <%= home.rating %> / 5
+                                    ★ <%= reviewCount > 0 ? averageRating.toFixed(1) + " / 5" : "New listing" %>
                                 </div>
 
                             </div>
@@ -1885,7 +1885,7 @@
                 </label>
 
                 <div class="review-stars-input">
-                    <% for (let star = 1; star <= 5; star++) { %>
+                    <% for (let star = 5; star >= 1; star--) { %>
                         <input
                             type="radio"
                             id="review-star-<%= star %>"

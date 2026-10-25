@@ -33,6 +33,9 @@ hostRouter.post(
   hostController.postAddHome
 );
 
+// Host booking overview (only bookings for the signed-in host's properties).
+hostRouter.get("/bookings", hostController.getHostBookings);
+
 // Display host homes
 hostRouter.get(
   "/host-homes",

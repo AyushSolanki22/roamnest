@@ -58,7 +58,7 @@
               <div class="flex items-center gap-2 mt-3">
                 <span class="text-yellow-500 text-xl">★</span>
                 <span class="font-semibold text-slate-800">
-                  <%= home.rating %> / 5
+                  <%= home.reviewCount > 0 ? `${home.averageRating.toFixed(1)} / 5` : "New listing" %>
                 </span>
               </div>
 

@@ -62,11 +62,13 @@ const homeSchema = mongoose.Schema({
     trim: true,
   },
 
+  // Legacy field retained for existing documents only. Public ratings are
+  // calculated from Review documents and must never be supplied by hosts.
   rating: {
     type: Number,
-    required: true,
-    min: [0, "Rating cannot be below 0."],
-    max: [5, "Rating cannot exceed 5."],
+    min: [0, "Legacy rating cannot be below 0."],
+    max: [5, "Legacy rating cannot exceed 5."],
+    select: false,
   },
 
   photo: {

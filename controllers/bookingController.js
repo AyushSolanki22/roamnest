@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Booking = require("../models/booking");
 const Home = require("../models/home");
+const Review = require("../models/review");
 
 // ======================================================
 // TRUEPRICE HELPERS
@@ -202,8 +203,19 @@ exports.getBooking = async (req, res, next) => {
       checkOut: formatDateOnly(new Date(booking.checkOut))
     }));
 
+    const ratingSummary = await Review.aggregate([
+      { $match: { home: new mongoose.Types.ObjectId(homeId) } },
+      { $group: { _id: null, averageRating: { $avg: "$rating" }, reviewCount: { $sum: 1 } } },
+    ]);
+    const reviewCount = ratingSummary[0]?.reviewCount || 0;
+    const averageRating = reviewCount
+      ? Math.round(ratingSummary[0].averageRating * 10) / 10
+      : null;
+
     return res.render("store/booking", {
       home,
+      averageRating,
+      reviewCount,
       includedGuests,
       bookingError,
       unavailableDateRanges,
